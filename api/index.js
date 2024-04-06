@@ -12,6 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 const jwt = require("jsonwebtoken")
+const moment = require("moment")
 
 mongoose.connect("mongodb+srv://pv:pv@cluster0.dtbyiyx.mongodb.net/").then(() => {
     console.log("Conectado a MongoDB")
@@ -64,17 +65,44 @@ app.post("/login", async (req, res) => {
 
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(401).json({ message: "El correo es incorrecto" })
+            return res.status(401).json({ message: "El correo es incorrecto." })
         }
 
         if (user.password !== password) {
-            return res.status(401).json({ message: "La contraseña es incorrecta" })
+            return res.status(401).json({ message: "La contraseña es incorrecta." })
         }
         const token = jwt.sign({ userId: user._id, }, secretKey)
 
-        res.status(200).json(token)
+        res.status(200).json({ token })
     } catch (error) {
         console.log("Error al iniciar sesión", error)
-        res.status(500).json({ message: "Inicio de sesión fallido" })
+        res.status(500).json({ message: "Inicio de sesión fallido." })
+    }
+})
+
+app.post("/todos/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId
+        const { title, category } = req.body
+
+        const newTodo = new Todo({
+            title,
+            category,
+            dueDate: moment().format("YYYY-MM-DD")
+        })
+
+        await newTodo.save()
+
+        const user = await User.findById(userId)
+        if (!user) {
+            res.status(404).json({ error: "El usuario no se ha encontrado." })
+        }
+
+        user?.todos.push(newTodo._id)
+        await user.save()
+
+        res.status(200).json({ message: "La tarea se ha añadido.", todo: newTodo })
+    } catch (error) {
+        res.status(200).json({ message: "No se ha añadido una tarea." })
     }
 })
