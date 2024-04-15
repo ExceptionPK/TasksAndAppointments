@@ -106,3 +106,72 @@ app.post("/todos/:userId", async (req, res) => {
         res.status(200).json({ message: "No se ha añadido una tarea." })
     }
 })
+
+app.get("/users/:userId/todos", async (req, res) => {
+    try {
+        const userId = req.params.userId
+
+        const user = await User.findById(userId).populate("todos")
+        if (!user) {
+            return res.status(404).json({ error: "El usuario no se ha encontrado." })
+        }
+
+        res.status(200).json({ todos: user.todos })
+    } catch (error) {
+        res.status(500).json({ message: "Algo ha ido mal" })
+    }
+})
+
+app.patch("/todos/:todoId/complete", async (req, res) => {
+    try {
+        const todoId = req.params.todoId
+
+        const updatedTodo = await Todo.findByIdAndUpdate(todoId, {
+            status: "completed"
+        }, { new: true }
+        )
+
+        if (!updatedTodo) {
+            return res.status(404).json({ error: "No se ha encontrado la tarea" })
+        }
+
+        res.status(200).json({ message: "Tarea marcada como completada", todo: updatedTodo })
+    } catch (error) {
+        res.status(500).json({ message: "Algo ha ido mal" })
+    }
+})
+
+app.get("/todos/completed/:date", async (req, res) => {
+    try {
+        const date = req.params.date;
+
+        const completedTodos = await Todo.find({
+            status: "completed",
+            createdAt: {
+                $gte: new Date(`${date}T00:00:00.000Z`),
+                $lt: new Date(`${date}T23:59:59.999Z`),
+            },
+        }).exec();
+
+        res.status(200).json({ completedTodos })
+    } catch (error) {
+        res.status(500).json({ error: "Algo ha ido mal" })
+    }
+})
+
+
+app.get("/todos/count", async (req, res) => {
+    try {
+        const totalCompletedTodos = await Todo.countDocuments({
+            status: "completed",
+        }).exec()
+
+        const totalPendingTodos = await Todo.countDocuments({
+            status: "pending",
+        }).exec()
+
+        res.status(200).json({ totalCompletedTodos, totalPendingTodos })
+    } catch (error) {
+        res.status(500).json({ error: "Error en la conexión." })
+    }
+})

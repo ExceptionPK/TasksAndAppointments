@@ -23,6 +23,7 @@ const login = () => {
         }
         checkLoginStatus()
     }, [])
+    
     const handleLogin = () => {
         const user = {
             email: email,
@@ -35,6 +36,7 @@ const login = () => {
             router.replace("/(tabs)/home")
         })
     }
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}>
             <View style={{ marginTop: 80 }}>
