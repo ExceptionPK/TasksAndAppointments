@@ -7,8 +7,10 @@ import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import axios from 'axios'
 import moment from "moment"
+import { useRouter } from 'expo-router'
 
 const index = () => {
+  const router = useRouter();
   const [todos, setTodos] = useState([])
   const today = moment().format("Do MMMM")
   const [isModalVisible, setModalVisible] = useState(false)
@@ -160,7 +162,20 @@ const index = () => {
               {pendingTodos?.length > 0 && (<Text>Tareas por hacer {today}</Text>)}
 
               {pendingTodos?.map((item, index) => (
-                <Pressable style={{ backgroundColor: "#e7edfd", padding: 10, borderRadius: 7, marginVertical: 10 }} key={index}>
+                <Pressable
+                  onPress={() => {
+                    router?.push({
+                      pathname: "/home/info",
+                      params: {
+                        id: item._id,
+                        title: item?.title,
+                        category: item?.category,
+                        createdAt: item?.createdAt,
+                        dueDate: item?.dueDate,
+                      },
+                    });
+                  }}
+                  style={{ backgroundColor: "#e7edfd", padding: 10, borderRadius: 7, marginVertical: 10 }} key={index}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <Entypo onPress={() => markTodoAsCompleted(item?._id)} name="circle" size={18} color="black" />
                     <Text style={{ flex: 1 }}>{item?.title}</Text>
