@@ -28,6 +28,7 @@ const index = () => {
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
   };
+
   return (
     <View style={{ flex: 1, backgroundColor: "white" }}>
       <Calendar
@@ -80,7 +81,7 @@ const index = () => {
             >
               {item?.title}
             </Text>
-            <Feather name="flag" size={20} color="gray" />
+            <Feather name="flag" size={25} color="gray" />
           </View>
         </Pressable>
       ))}

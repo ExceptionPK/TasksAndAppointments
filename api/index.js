@@ -21,7 +21,7 @@ mongoose.connect("mongodb+srv://pv:pv@cluster0.dtbyiyx.mongodb.net/").then(() =>
 })
 
 app.listen(port, () => {
-    console.log("El servidor esta corriendo")
+    console.log("El servidor esta ejecutandose")
 })
 
 const User = require("./models/user")
@@ -34,7 +34,7 @@ app.post("/register", async (req, res) => {
         ///Comprobar si el email esta registrado
         const existingUser = await User.findOne({ email })
         if (existingUser) {
-            console.log("Email ya existe")
+            console.log("Este email ya existe")
         }
 
         const newUser = new User({

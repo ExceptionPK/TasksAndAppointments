@@ -1,24 +1,28 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import axios from 'axios'
-import moment from "moment"
-import { useRouter } from 'expo-router'
+import axios from 'axios';
+import moment from "moment";
+import 'moment/locale/es';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const index = () => {
   const router = useRouter();
   const [todos, setTodos] = useState([])
-  const today = moment().format("Do MMMM")
+  const today = moment().locale('es').format("D [de] MMMM [de] YYYY")
   const [isModalVisible, setModalVisible] = useState(false)
   const [category, setCategory] = useState("Todas")
   const [todo, setTodo] = useState("")
   const [pendingTodos, setPendingTodos] = useState([])
   const [completedTodos, setCompletedTodos] = useState([])
   const [marked, setMarked] = useState(false)
+  const [taskFlags, setTaskFlags] = useState({});
+
   const suggestions = [
     {
       id: "0",
@@ -34,7 +38,7 @@ const index = () => {
     },
     {
       id: "4",
-      todo: "Adrián Cartón 9:00",
+      todo: "Realizar vista del perfil",
     }
   ]
 
@@ -60,22 +64,26 @@ const index = () => {
   }
   useEffect(() => {
     getUserTodos()
+    loadTaskFlags()
   }, [marked, isModalVisible])
 
   const getUserTodos = async () => {
     try {
       const response = await axios.get(`http://192.168.1.60:3000/users/66101c893f899ce3920eab80/todos`)
 
-      console.log(response.data.todos)
-      setTodos(response.data.todos)
+      setTodos(response.data.todos || []);
 
-      const fetchedTodos = response.data.todos || []
-      const pending = fetchedTodos.filter((todo) => todo.status !== "completed")
+      const pending = response.data.todos.filter((todo) => todo.status !== "completed");
+      const completed = response.data.todos.filter((todo) => todo.status === "completed");
 
-      const completed = fetchedTodos.filter((todo) => todo.status === "completed")
-
-      setPendingTodos(pending)
-      setCompletedTodos(completed)
+      setPendingTodos(pending);
+      setCompletedTodos(completed);
+      
+      const initialFlags = {};
+      response.data.todos.forEach(todo => {
+        initialFlags[todo._id] = false;
+      });
+      setTaskFlags(initialFlags);
     } catch (error) {
       console.log(error)
     }
@@ -93,19 +101,33 @@ const index = () => {
     }
   }
 
-  const handleLogout = async () => {
+  console.log("completed", completedTodos)
+  console.log("pending", pendingTodos)
+
+  const toggleFlag = async (taskId) => {
     try {
-      // Eliminar el token de autenticación almacenado
-      await AsyncStorage.removeItem("authToken");
-      // Redirigir al usuario a la pantalla de inicio de sesión
-      router.replace("/login");
+      const updatedFlags = { ...taskFlags, [taskId]: !taskFlags[taskId] };
+      setTaskFlags(updatedFlags);
+      await AsyncStorage.setItem(taskId, updatedFlags[taskId] ? 'true' : 'false');
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
-  console.log("completed", completedTodos)
-  console.log("pending", pendingTodos)
+  const loadTaskFlags = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const storedFlags = {};
+      for (const key of keys) {
+        const value = await AsyncStorage.getItem(key);
+        storedFlags[key] = value === 'true';
+      }
+      setTaskFlags(storedFlags);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   return (
     <>
@@ -130,24 +152,11 @@ const index = () => {
             paddingVertical: 6,
             borderRadius: 10,
             alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center" }}>Trabajo</Text>
-        </Pressable>
-
-        <Pressable
-          style={{
-            backgroundColor: "#7799f9",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 10,
-            alignItems: "center",
             justifyContent: "center",
             marginRight: "auto"
           }}
         >
-          <Text style={{ color: "white", textAlign: "center" }}>Personal</Text>
+          <Text style={{ color: "white", textAlign: "center" }}>Sugerencias</Text>
         </Pressable>
 
         <Pressable onPress={() => setModalVisible(!isModalVisible)}>
@@ -179,7 +188,13 @@ const index = () => {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <Entypo onPress={() => markTodoAsCompleted(item?._id)} name="circle" size={18} color="black" />
                     <Text style={{ flex: 1 }}>{item?.title}</Text>
-                    <Ionicons name="flag-outline" size={20} color="black" />
+                    <Ionicons
+                      name={taskFlags[item._id] ? "flag" : "flag-outline"}
+                      size={25}
+                      color={taskFlags[item._id] ? "#ce6464" : "black"}
+                      onPress={() => toggleFlag(item._id)}
+                    />
+
                   </View>
                 </Pressable>
               ))}
@@ -200,7 +215,7 @@ const index = () => {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                         <FontAwesome name="circle" size={18} color="gray" />
                         <Text style={{ flex: 1, textDecorationLine: "line-through", color: "gray" }}>{item?.title}</Text>
-                        <Ionicons name="flag-outline" size={20} color="gray" />
+                        <Ionicons name="flag-outline" size={25} color="gray" />
                       </View>
                     </Pressable>
                   ))}
@@ -271,17 +286,7 @@ const index = () => {
               }}>
               <Text>Personal</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setCategory("Ideas")}
-              style={{
-                borderColor: "#e0e0e0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 10
-              }}>
-              <Text>Ideas</Text>
-            </Pressable>
+
           </View>
 
           <Text>Sugerencias</Text>

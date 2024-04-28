@@ -1,9 +1,13 @@
-import { Image, StyleSheet, Text, View, Dimensions } from "react-native";
+import { Image, StyleSheet, Text, View, Dimensions, Pressable } from "react-native";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { LineChart } from "react-native-chart-kit";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { SimpleLineIcons } from '@expo/vector-icons';
 
 const index = () => {
+  const router = useRouter();
   const [completedTasks, setCompletedTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
 
@@ -17,11 +21,25 @@ const index = () => {
       console.log("error", error);
     }
   };
+
   useEffect(() => {
     fetchTaskData();
+    const interval = setInterval(fetchTaskData, 3000);
+    return () => clearInterval(interval);
   }, []);
+
   console.log("comp", completedTasks);
   console.log("pending", pendingTasks);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("authToken");
+      router.replace("/login");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <View style={{ padding: 10, flex: 1, backgroundColor: "white" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -91,7 +109,7 @@ const index = () => {
 
       <LineChart
         data={{
-          labels: ["Pending Tasks", "Completed Tasks"],
+          labels: ["Tareas por hacer", "Tareas completadas"],
           datasets: [
             {
               data: [pendingTasks, completedTasks],
@@ -100,7 +118,7 @@ const index = () => {
         }}
         width={Dimensions.get("window").width - 20}
         height={220}
-        yAxisInterval={2} 
+        yAxisInterval={2}
         chartConfig={{
           backgroundColor: "#aaa3e3",
           backgroundGradientFrom: "#a3b1e3",
@@ -122,7 +140,10 @@ const index = () => {
           borderRadius: 16,
         }}
       />
-      
+
+      <Pressable onPress={handleLogout} style={{ position: 'absolute', top: 15, right: 15 }}>
+        <SimpleLineIcons name="logout" size={30} color="black" />
+      </Pressable>
     </View>
   );
 };
