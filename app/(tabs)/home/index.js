@@ -362,7 +362,7 @@ const index = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {pendingTodos.length > 0 ? (
+            {pendingTodos.length > 0 || completedTodos.length > 0 ? (
               <>
                 <Text style={[styles.modalMessage, { fontWeight: 'bold', textAlign: 'center' }]}>¿Quieres eliminar todas las tareas?</Text>
                 <View style={styles.modalButtons}>
