@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase } from 'react-native';
+import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AntDesign } from '@expo/vector-icons';
 import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals';
@@ -22,6 +22,9 @@ const index = () => {
   const [completedTodos, setCompletedTodos] = useState([])
   const [marked, setMarked] = useState(false)
   const [taskFlags, setTaskFlags] = useState({});
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
+
 
   const suggestions = [
     {
@@ -39,7 +42,15 @@ const index = () => {
     {
       id: "4",
       todo: "Realizar vista del perfil",
-    }
+    },
+    {
+      id: "5",
+      todo: "Hacer powerpoint de TFG",
+    },
+    {
+      id: "6",
+      todo: "Realizar documentación",
+    },
   ]
 
   const addTodo = async () => {
@@ -78,7 +89,7 @@ const index = () => {
 
       setPendingTodos(pending);
       setCompletedTodos(completed);
-      
+
       const initialFlags = {};
       response.data.todos.forEach(todo => {
         initialFlags[todo._id] = false;
@@ -100,6 +111,28 @@ const index = () => {
       console.log(error)
     }
   }
+
+  const deleteTodo = async (todoId) => {
+    try {
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`);
+      console.log(response.data);
+
+      await getUserTodos();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const deleteAllTodos = async () => {
+    try {
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/66101c893f899ce3920eab80`);
+      console.log(response.data);
+      await getUserTodos();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   console.log("completed", completedTodos)
   console.log("pending", pendingTodos)
@@ -129,6 +162,7 @@ const index = () => {
   };
 
 
+
   return (
     <>
       <View style={{ marginHorizontal: 10, marginVertical: 10, flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -153,10 +187,24 @@ const index = () => {
             borderRadius: 10,
             alignItems: "center",
             justifyContent: "center",
-            marginRight: "auto"
           }}
         >
           <Text style={{ color: "white", textAlign: "center" }}>Sugerencias</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowConfirmationModal(true)}
+          style={{
+            backgroundColor: "#f36259",
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 10,
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: "auto"
+          }}
+        >
+          <Text style={{ color: "white", textAlign: "center" }}>Eliminar tareas</Text>
         </Pressable>
 
         <Pressable onPress={() => setModalVisible(!isModalVisible)}>
@@ -188,6 +236,12 @@ const index = () => {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <Entypo onPress={() => markTodoAsCompleted(item?._id)} name="circle" size={18} color="black" />
                     <Text style={{ flex: 1 }}>{item?.title}</Text>
+                    <MaterialIcons
+                      name="delete-outline"
+                      size={25}
+                      color="#ce6464"
+                      onPress={() => deleteTodo(item._id)}
+                    />
                     <Ionicons
                       name={taskFlags[item._id] ? "flag" : "flag-outline"}
                       size={25}
@@ -299,10 +353,97 @@ const index = () => {
           </View>
         </ModalContent>
       </BottomModal>
+
+      <Modal
+        visible={showConfirmationModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowConfirmationModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {pendingTodos.length > 0 ? (
+              <>
+                <Text style={[styles.modalMessage, { fontWeight: 'bold', textAlign: 'center' }]}>¿Quieres eliminar todas las tareas?</Text>
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.yesButton]}
+                    onPress={() => {
+                      setDeleteConfirmation(true);
+                      deleteAllTodos();
+                      setShowConfirmationModal(false);
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Sí</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.noButton]}
+                    onPress={() => setShowConfirmationModal(false)}
+                  >
+                    <Text style={styles.modalButtonText}>No</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={[styles.modalMessage, { fontWeight: 'bold', textAlign: 'center' }]}>No hay tareas para eliminar.</Text>
+                <View style={{ marginTop: 10 }}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, { backgroundColor: '#7799f9' }]}
+                    onPress={() => setShowConfirmationModal(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Ok</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </>
   )
 }
 
 export default index
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalMessage: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  modalButton: {
+    padding: 11,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  yesButton: {
+    flex: 1,
+    backgroundColor: '#f36259',
+    marginRight: 5,
+  },
+  noButton: {
+    flex: 1,
+    backgroundColor: '#7799f9',
+    marginLeft: 5,
+  }
+})

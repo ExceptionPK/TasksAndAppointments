@@ -1,14 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { Calendar } from "react-native-calendars";
 import axios from "axios";
 import { FontAwesome, Feather, MaterialIcons } from "@expo/vector-icons";
 
-const index = () => {
+const Index = () => {
   const today = moment().format("YYYY-MM-DD");
   const [selectedDate, setSelectedDate] = useState(today);
   const [todos, setTodos] = useState([]);
+
   const fetchCompletedTodos = async () => {
     try {
       const response = await axios.get(
@@ -21,10 +22,11 @@ const index = () => {
       console.log("error", error);
     }
   };
+
   useEffect(() => {
     fetchCompletedTodos();
   }, [selectedDate]);
-  console.log(todos);
+
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
   };
@@ -38,57 +40,59 @@ const index = () => {
         }}
       />
 
-      <View style={{ marginTop: 20 }} />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ marginTop: 20 }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 5,
-          marginVertical: 10,
-          marginHorizontal: 10,
-        }}
-      >
-        <Text>Tareas completadas</Text>
-        <MaterialIcons name="arrow-drop-down" size={24} color="black" />
-      </View>
-
-      {todos?.map((item, index) => (
-        <Pressable
+        <View
           style={{
-            backgroundColor: "#e7edfd",
-            padding: 10,
-            borderRadius: 7,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 5,
             marginVertical: 10,
             marginHorizontal: 10,
           }}
-          key={index}
         >
-          <View
+          <Text>Tareas completadas</Text>
+          <MaterialIcons name="arrow-drop-down" size={24} color="black" />
+        </View>
+
+        {todos?.map((item, index) => (
+          <Pressable
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
+              backgroundColor: "#e7edfd",
+              padding: 10,
+              borderRadius: 7,
+              marginVertical: 10,
+              marginHorizontal: 10,
             }}
+            key={index}
           >
-            <FontAwesome name="circle" size={18} color="gray" />
-            <Text
+            <View
               style={{
-                flex: 1,
-                textDecorationLine: "line-through",
-                color: "gray",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
               }}
             >
-              {item?.title}
-            </Text>
-            <Feather name="flag" size={25} color="gray" />
-          </View>
-        </Pressable>
-      ))}
+              <FontAwesome name="circle" size={18} color="gray" />
+              <Text
+                style={{
+                  flex: 1,
+                  textDecorationLine: "line-through",
+                  color: "gray",
+                }}
+              >
+                {item?.title}
+              </Text>
+              <Feather name="flag" size={25} color="gray" />
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
     </View>
   );
 };
 
-export default index;
+export default Index;
 
 const styles = StyleSheet.create({});

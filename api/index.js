@@ -175,3 +175,56 @@ app.get("/todos/count", async (req, res) => {
         res.status(500).json({ error: "Error en la conexión." })
     }
 })
+
+app.delete("/todos/:todoId", async (req, res) => {
+    try {
+        const todoId = req.params.todoId;
+
+        const deletedTodo = await Todo.findByIdAndDelete(todoId);
+        if (!deletedTodo) {
+            return res.status(404).json({ error: "La tarea no se ha encontrado." });
+        }
+
+        const user = await User.findOneAndUpdate(
+            { todos: todoId },
+            { $pull: { todos: todoId } },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: "El usuario no se ha encontrado." });
+        }
+
+        res.status(200).json({ message: "Tarea eliminada correctamente." });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Error al eliminar la tarea." });
+    }
+})
+
+app.delete("/todos/delete-all/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "El usuario no se ha encontrado." });
+        }
+
+        const deletedTodos = await Todo.deleteMany({ _id: { $in: user.todos } });
+        if (!deletedTodos) {
+            return res.status(404).json({ error: "No se han encontrado tareas para eliminar." });
+        }
+        
+        user.todos = [];
+        await user.save();
+
+        res.status(200).json({ message: "Todas las tareas han sido eliminadas." });
+    } catch (error) {
+        console.log("Error al eliminar todas las tareas:", error);
+        res.status(500).json({ message: "Error al eliminar todas las tareas." });
+    }
+});
+
+
+
