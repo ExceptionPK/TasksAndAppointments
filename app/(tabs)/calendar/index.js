@@ -25,6 +25,8 @@ const Index = () => {
 
   useEffect(() => {
     fetchCompletedTodos();
+    const interval = setInterval(fetchCompletedTodos, 3000);
+    return () => clearInterval(interval);
   }, [selectedDate]);
 
   const handleDayPress = (day) => {
