@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router'
 import { FontAwesome } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View } from 'react-native';
 
 export default function Layout() {
     return (
@@ -14,9 +15,14 @@ export default function Layout() {
                     headerShown: false,
                     tabBarIcon: ({ focused }) =>
                         focused ? (
-                            <FontAwesome name="tasks" size={27} color="#406ef2" />
+                            <View style={{ marginTop: 11 }}>
+                                <FontAwesome name="tasks" size={27} color="#406ef2" />
+                            </View>
                         ) : (
-                            <FontAwesome name="tasks" size={27} color="black" />
+                            <View style={{ marginTop: 11 }}>
+                                <FontAwesome name="tasks" size={27} color="black" />
+                            </View>
+
                         )
                 }}
             />
@@ -29,9 +35,13 @@ export default function Layout() {
                     headerShown: false,
                     tabBarIcon: ({ focused }) =>
                         focused ? (
-                            <AntDesign name="calendar" size={27} color="#406ef2" />
+                            <View style={{ marginTop: 10 }}>
+                                <AntDesign name="calendar" size={27} color="#406ef2" />
+                            </View>
                         ) : (
-                            <AntDesign name="calendar" size={27} color="black" />
+                            <View style={{ marginTop: 10 }}>
+                                <AntDesign name="calendar" size={27} color="black" />
+                            </View>
                         )
                 }}
             />
@@ -44,9 +54,13 @@ export default function Layout() {
                     headerShown: false,
                     tabBarIcon: ({ focused }) =>
                         focused ? (
-                            <MaterialCommunityIcons name="account-details" size={35} color="#406ef2" />
+                            <View style={{ marginTop: 7 }}>
+                                <MaterialCommunityIcons name="account-details" size={34} color="#406ef2" />
+                            </View>
                         ) : (
-                            <MaterialCommunityIcons name="account-details" size={35} color="black" />
+                            <View style={{ marginTop: 7 }}>
+                                <MaterialCommunityIcons name="account-details" size={34} color="black" />
+                            </View>
                         )
                 }}
             />

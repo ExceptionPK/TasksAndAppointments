@@ -2,6 +2,7 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const mongoose = require("mongoose")
 const crypto = require("crypto")
+const nodemailer = require("nodemailer")
 
 const app = express()
 const port = 3000
@@ -215,7 +216,7 @@ app.delete("/todos/delete-all/:userId", async (req, res) => {
         if (!deletedTodos) {
             return res.status(404).json({ error: "No se han encontrado tareas para eliminar." });
         }
-        
+
         user.todos = [];
         await user.save();
 
@@ -224,7 +225,40 @@ app.delete("/todos/delete-all/:userId", async (req, res) => {
         console.log("Error al eliminar todas las tareas:", error);
         res.status(500).json({ message: "Error al eliminar todas las tareas." });
     }
-});
+})
 
 
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: "saleunomas@gmail.com",
+        pass: "dumbdumber",
+    }
+})
+
+app.post("/forgot-password", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const mailOptions = {
+            from: "saleunomas@gmail.com",
+            to: email,
+            subject: "Recuperación de contraseña",
+            text: "Aquí puedes incluir un mensaje personalizado con instrucciones para restablecer la contraseña.",
+        }
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log(error);
+                res.status(500).json({ message: "Error al enviar el correo electrónico de recuperación de contraseña." })
+            } else {
+                console.log("Email enviado: " + info.response);
+                res.status(200).json({ message: "Correo electrónico de recuperación de contraseña enviado correctamente." })
+            }
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error al procesar la solicitud de recuperación de contraseña." })
+    }
+})
 

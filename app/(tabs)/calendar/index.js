@@ -54,7 +54,7 @@ const Index = () => {
             marginHorizontal: 10,
           }}
         >
-          <Text>Tareas completadas</Text>
+          <Text style={{fontWeight:"900"}}>Tareas completadas</Text>
           <MaterialIcons name="arrow-drop-down" size={24} color="black" />
         </View>
 
@@ -82,11 +82,11 @@ const Index = () => {
                   flex: 1,
                   textDecorationLine: "line-through",
                   color: "gray",
+                  fontWeight:"500"
                 }}
               >
                 {item?.title}
               </Text>
-              <Feather name="flag" size={25} color="gray" />
             </View>
           </Pressable>
         ))}

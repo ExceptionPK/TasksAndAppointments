@@ -10,11 +10,16 @@ const register = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
+
     const handleRegister = () => {
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
         const user = {
-            name: name,
-            email: email,
-            password: password
+            name: trimmedName,
+            email: trimmedEmail,
+            password: trimmedPassword
         }
 
         axios.post("http://192.168.1.60:3000/register", user).then((response) => {
@@ -28,6 +33,7 @@ const register = () => {
             console.log("error", error)
         })
     }
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}>
             <View style={{ marginTop: 80 }}>
@@ -39,12 +45,11 @@ const register = () => {
                 </View>
 
                 <View style={{ marginTop: 70 }}>
-
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#e9eaec", paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
                         <Ionicons style={{ marginLeft: 8, color: "gray" }} name="person" size={24} color="gray" />
                         <TextInput
                             value={name}
-                            onChangeText={(text) => setName(text)}
+                            onChangeText={(text) => setName(text.trim())}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -54,11 +59,11 @@ const register = () => {
                             placeholder='Introduce tu nombre'></TextInput>
                     </View>
 
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#e9eaec", paddingVertical: 5, borderRadius: 5, marginTop: 30 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#e9eaec", paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
                         <MaterialIcons style={{ marginLeft: 8, color: "gray" }} name="email" size={24} color="black" />
                         <TextInput
                             value={email}
-                            onChangeText={(text) => setEmail(text)}
+                            onChangeText={(text) => setEmail(text.trim())}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -73,7 +78,7 @@ const register = () => {
                         <TextInput
                             value={password}
                             secureTextEntry={true}
-                            onChangeText={(text) => setPassword(text)}
+                            onChangeText={(text) => setPassword(text.trim())}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -82,8 +87,6 @@ const register = () => {
                             }}
                             placeholder='Introduce tu contraseña'></TextInput>
                     </View>
-
-
 
                     <View style={{ marginTop: 90 }} />
 

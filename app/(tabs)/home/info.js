@@ -127,12 +127,12 @@ const Info = () => {
             </View>
 
             <View style={{ marginTop: 5 }}>
-                <Text style={{ fontSize: 15, fontWeight: "500" }}>
+                <Text style={{ fontSize: 15, fontWeight: "900" }}>
                     Categoría - {params?.category}
                 </Text>
             </View>
 
-            <Text style={{ marginTop: 20, fontSize: 17, fontWeight: "600" }}>
+            <Text style={{ marginTop: 20, fontSize: 17, fontWeight: "700" }}>
                 {params?.title}
             </Text>
 
@@ -141,7 +141,7 @@ const Info = () => {
             {!isAddingSubtask && (
                 <Pressable onPress={toggleAddSubtaskField} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                     <AntDesign name="plus" size={24} color="#7CB9E8" />
-                    <Text style={{ color: "#7799f9", fontSize: 16, fontWeight: "500" }}>
+                    <Text style={{ color: "#7799f9", fontSize: 16, fontWeight: "700" }}>
                         Añadir una subtarea
                     </Text>
                 </Pressable>
@@ -153,10 +153,10 @@ const Info = () => {
                         value={subtask}
                         onChangeText={handleSubtaskChange}
                         placeholder="Introduce una subtarea"
-                        style={{ padding: 10, borderColor: "#e0e0e0", borderWidth: 1, borderRadius: 5, marginTop: 10 }}
+                        style={{ padding: 10, borderColor: "#e0e0e0", borderWidth: 1, borderRadius: 5, marginTop: 10, fontWeight:"500"}}
                     />
                     <Pressable onPress={toggleAddSubtaskField} style={{ backgroundColor: "#406ef2", padding: 10, borderRadius: 5, marginTop: 10 }}>
-                        <Text style={{ color: "white", textAlign: "center" }}>Agregar subtarea</Text>
+                        <Text style={{ color: "white", textAlign: "center", fontWeight:"700"}}>Agregar subtarea</Text>
                     </Pressable>
                 </View>
             )}
@@ -171,13 +171,13 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <AntDesign name="calendar" size={24} color="black" />
-                        <Text>Fecha actual</Text>
+                        <Text style={{fontWeight:"700"}}>Fecha actual</Text>
                     </View>
 
                     <Pressable
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text>{currentDate}</Text>
+                        <Text style={{fontWeight:"400"}}>{currentDate}</Text>
                     </Pressable>
 
                 </View>
@@ -193,14 +193,14 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <Ionicons name="time-outline" size={24} color="black" />
-                        <Text>Recordatorio</Text>
+                        <Text style={{fontWeight:"700"}}>Recordatorio</Text>
                     </View>
 
                     <Pressable
                         onPress={toggleReminder}
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text>{reminder}</Text>
+                        <Text style={{fontWeight:"400"}}>{reminder}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -215,13 +215,13 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <SimpleLineIcons name="note" size={24} color="black" />
-                        <Text>Notas</Text>
+                        <Text style={{fontWeight:"700"}}>Notas</Text>
                     </View>
 
                     <Pressable
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text>{subtasksList.length > 0 ? "Añadido" : "No añadido"}</Text>
+                        <Text style={{fontWeight:"400"}}>{subtasksList.length > 0 ? "Añadido" : "No añadido"}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -230,7 +230,7 @@ const Info = () => {
                 {subtasksList.map((subtask, index) => (
                     <Pressable key={index} onPress={() => deleteSubtask(index)} style={styles.subtaskContainer}>
                         <MaterialCommunityIcons name="pencil-outline" size={20} color="black" />
-                        <Text style={{ marginLeft: 5 }}>{subtask}</Text>
+                        <Text style={{ marginLeft: 5 , fontWeight:"500" }}>{subtask}</Text>
                     </Pressable>
                 ))}
             </ScrollView>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
@@ -9,7 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 const login = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
     const router = useRouter()
+
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
@@ -23,19 +26,46 @@ const login = () => {
         }
         checkLoginStatus()
     }, [])
-    
+
     const handleLogin = () => {
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
         const user = {
-            email: email,
-            password: password
+            email: trimmedEmail,
+            password: trimmedPassword
         }
 
         axios.post("http://192.168.1.60:3000/login", user).then((response) => {
             const token = response.data.token;
-            AsyncStorage.setItem("authToken", token);
+            AsyncStorage.setItem("authToken", token)
             router.replace("/(tabs)/home")
         })
     }
+
+    const handleForgotPassword = () => {
+        setIsForgotPasswordModalVisible(true)
+    }
+
+    const handleCloseForgotPasswordModal = () => {
+        setIsForgotPasswordModalVisible(false)
+        setForgotPasswordEmail("")
+    }
+
+    const handleSendPasswordResetEmail = async () => {
+        try {
+            const trimmedForgotPasswordEmail = forgotPasswordEmail.trim();
+
+            await axios.post("http://192.168.1.60:3000/forgot-password", { email: trimmedForgotPasswordEmail });
+
+            alert("Se ha enviado un correo electrónico de restablecimiento de contraseña.");
+
+            handleCloseForgotPasswordModal();
+        } catch (error) {
+            console.log(error);
+            alert("Hubo un error al enviar el correo electrónico de restablecimiento de contraseña.");
+        }
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}>
@@ -52,7 +82,7 @@ const login = () => {
                         <MaterialIcons style={{ marginLeft: 8, color: "gray" }} name="email" size={24} color="black" />
                         <TextInput
                             value={email}
-                            onChangeText={(text) => setEmail(text)}
+                            onChangeText={(text) => setEmail(text.trim())}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -67,7 +97,7 @@ const login = () => {
                         <TextInput
                             value={password}
                             secureTextEntry={true}
-                            onChangeText={(text) => setPassword(text)}
+                            onChangeText={(text) => setPassword(text.trim())}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -78,11 +108,10 @@ const login = () => {
                     </View>
 
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, justifyContent: "space-between" }}>
-                        <Text>Mantener sesión</Text>
-                        <Text style={{ color: "#007FFF", fontWeight: 600 }}>Olvidé mi contraseña</Text>
+
                     </View>
 
-                    <View style={{ marginTop: 60 }} />
+                    <View style={{ marginTop: 140 }} />
 
                     <Pressable onPress={handleLogin} style={{ width: 200, backgroundColor: "#406ef2", padding: 15, borderRadius: 5, marginLeft: "auto", marginRight: "auto" }}>
                         <Text style={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: 18 }}>Iniciar sesión</Text>
@@ -92,7 +121,37 @@ const login = () => {
                         <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>¿No tienes una cuenta? Regístrate</Text>
                     </Pressable>
 
+                    <Pressable onPress={handleForgotPassword} style={{ marginTop: 15 }}>
+                        <Text style={{ textAlign: "center", color: "#007FFF", fontWeight: 600 }}>Olvidé mi contraseña</Text>
+                    </Pressable>
+
                 </View>
+
+                <Modal
+                    visible={isForgotPasswordModalVisible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={handleCloseForgotPasswordModal}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>Recuperar contraseña</Text>
+                            <TextInput
+                                value={forgotPasswordEmail}
+                                onChangeText={setForgotPasswordEmail}
+                                placeholder="Correo electrónico"
+                                style={styles.input}
+                            />
+                            <Pressable onPress={handleSendPasswordResetEmail} style={styles.sendButton}>
+                                <Text style={{ color: "white" }}>Enviar</Text>
+                            </Pressable>
+                            <Pressable onPress={handleCloseForgotPasswordModal} style={styles.closeButton}>
+                                <Text style={{ color: "white" }}>Cerrar</Text>
+                            </Pressable>
+
+                        </View>
+                    </View>
+                </Modal>
             </KeyboardAvoidingView>
         </SafeAreaView>
     )
@@ -100,4 +159,38 @@ const login = () => {
 
 export default login
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+    },
+    input: {
+        backgroundColor: '#e9eaec',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 5,
+        marginBottom: 20,
+    },
+    closeButton: {
+        backgroundColor: '#ccc',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+        alignItems: 'center',
+    },
+    sendButton: {
+        backgroundColor: '#406ef2',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+})
+
