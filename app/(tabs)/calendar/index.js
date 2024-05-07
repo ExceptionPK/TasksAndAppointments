@@ -1,37 +1,37 @@
-import { ScrollView, Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import moment from "moment";
-import { Calendar } from "react-native-calendars";
-import axios from "axios";
-import { FontAwesome, Feather, MaterialIcons } from "@expo/vector-icons";
+import { ScrollView, Pressable, StyleSheet, Text, View } from "react-native"
+import React, { useState, useEffect } from "react"
+import moment from "moment"
+import { Calendar } from "react-native-calendars"
+import axios from "axios"
+import { FontAwesome, Feather, MaterialIcons } from "@expo/vector-icons"
 
 const Index = () => {
-  const today = moment().format("YYYY-MM-DD");
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [todos, setTodos] = useState([]);
+  const today = moment().format("YYYY-MM-DD")
+  const [selectedDate, setSelectedDate] = useState(today)
+  const [todos, setTodos] = useState([])
 
   const fetchCompletedTodos = async () => {
     try {
       const response = await axios.get(
         `http://192.168.1.60:3000/todos/completed/${selectedDate}`
-      );
+      )
 
-      const completedTodos = response.data.completedTodos || [];
-      setTodos(completedTodos);
+      const completedTodos = response.data.completedTodos || []
+      setTodos(completedTodos)
     } catch (error) {
-      console.log("error", error);
+      console.log("error", error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchCompletedTodos();
-    const interval = setInterval(fetchCompletedTodos, 3000);
-    return () => clearInterval(interval);
-  }, [selectedDate]);
+    fetchCompletedTodos()
+    const interval = setInterval(fetchCompletedTodos, 3000)
+    return () => clearInterval(interval)
+  }, [selectedDate])
 
   const handleDayPress = (day) => {
-    setSelectedDate(day.dateString);
-  };
+    setSelectedDate(day.dateString)
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "white" }}>
@@ -92,9 +92,9 @@ const Index = () => {
         ))}
       </ScrollView>
     </View>
-  );
-};
+  )
+}
 
-export default Index;
+export default Index
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({})

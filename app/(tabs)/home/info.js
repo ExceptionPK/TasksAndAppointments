@@ -1,113 +1,130 @@
-import React, { useState, useEffect } from "react";
-import { Pressable, StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Animated } from "react-native";
-import { Ionicons, Entypo } from "@expo/vector-icons";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { AntDesign, Feather } from "@expo/vector-icons";
-import { SimpleLineIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react"
+import { Pressable, StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Animated, Platform, ToastAndroid } from "react-native"
+import { Ionicons, Entypo } from "@expo/vector-icons"
+import { useLocalSearchParams, useNavigation } from "expo-router"
+import { AntDesign, Feather } from "@expo/vector-icons"
+import { SimpleLineIcons } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 const Info = () => {
-    const params = useLocalSearchParams();
-    const navigation = useNavigation();
-    const [reminder, setReminder] = useState("No");
-    const [subtask, setSubtask] = useState("");
-    const [subtasksList, setSubtasksList] = useState([]);
-    const [isAddingSubtask, setIsAddingSubtask] = useState(false);
-    const [currentDate, setCurrentDate] = useState("");
+    const params = useLocalSearchParams()
+    const navigation = useNavigation()
+    const [reminder, setReminder] = useState("No")
+    const [subtask, setSubtask] = useState("")
+    const [subtasksList, setSubtasksList] = useState([])
+    const [isAddingSubtask, setIsAddingSubtask] = useState(false)
+    const [currentDate, setCurrentDate] = useState("")
+    const [showOptions, setShowOptions] = useState(false)
+    const [fadeAnim] = useState(new Animated.Value(0))
 
-    const handleBackPress = () => {
-        navigation.goBack();
+    const toggleOptions = () => {
+        setShowOptions(!showOptions)
+        Animated.timing(
+            fadeAnim,
+            {
+                toValue: showOptions ? 0 : 1,
+                duration: 200,
+                useNativeDriver: true,
+            }
+        ).start()
     }
 
+    const handleBackPress = () => {
+        navigation.goBack()
+    }
+
+
     useEffect(() => {
-        loadReminderState();
-        loadSubtasks();
-        setCurrentDate(getFormattedDate());
+        loadReminderState()
+        loadSubtasks()
+        setCurrentDate(getFormattedDate())
     }, [])
 
     const getFormattedDate = () => {
-        const date = new Date().toLocaleDateString();
-        return date;
+        const date = new Date().toLocaleDateString()
+        return date
     }
 
     const toggleReminder = () => {
         if (reminder === "No") {
-            setReminder("Sí");
-            saveReminderState("Sí");
-            sendNotification();
+            setReminder("Sí")
+            saveReminderState("Sí")
+            sendNotification()
         } else {
-            setReminder("No");
-            saveReminderState("No");
+            setReminder("No")
+            saveReminderState("No")
         }
     }
 
     const sendNotification = () => {
-        console.log("Los recordatorios para esta tarea han sido activados.");
+        if (Platform.OS === 'android') {
+            ToastAndroid.show('Los recordatorios para esta tarea han sido activados.', ToastAndroid.SHORT)
+        }
     }
 
     const saveReminderState = async (value) => {
         try {
-            await AsyncStorage.setItem(`reminderState_${params?.id}`, value);
+            await AsyncStorage.setItem(`reminderState_${params?.id}`, value)
         } catch (error) {
-            console.log("Error al guardar el estado del recordatorio:", error);
+            console.log("Error al guardar el estado del recordatorio:", error)
         }
     }
 
     const loadReminderState = async () => {
         try {
-            const value = await AsyncStorage.getItem(`reminderState_${params?.id}`);
+            const value = await AsyncStorage.getItem(`reminderState_${params?.id}`)
             if (value !== null) {
-                setReminder(value);
+                setReminder(value)
             }
         } catch (error) {
-            console.log("Error al cargar el estado del recordatorio:", error);
+            console.log("Error al cargar el estado del recordatorio:", error)
         }
     }
 
     const handleSubtaskChange = (text) => {
-        setSubtask(text);
+        setSubtask(text)
     }
 
     const addSubtask = async () => {
         if (subtask.trim() !== "") {
             try {
-                const updatedSubtasksList = [...subtasksList, subtask];
-                await AsyncStorage.setItem(`subtasksList_${params?.id}`, JSON.stringify(updatedSubtasksList));
-                setSubtasksList(updatedSubtasksList);
-                setSubtask("");
+                const updatedSubtasksList = [...subtasksList, subtask]
+                await AsyncStorage.setItem(`subtasksList_${params?.id}`, JSON.stringify(updatedSubtasksList))
+                setSubtasksList(updatedSubtasksList)
+                setSubtask("")
             } catch (error) {
-                console.log("Error al agregar la subtarea:", error);
+                console.log("Error al agregar la subtarea:", error)
             }
         }
     }
 
     const loadSubtasks = async () => {
         try {
-            const subtasks = await AsyncStorage.getItem(`subtasksList_${params?.id}`);
+            const subtasks = await AsyncStorage.getItem(`subtasksList_${params?.id}`)
             if (subtasks !== null) {
-                setSubtasksList(JSON.parse(subtasks));
+                setSubtasksList(JSON.parse(subtasks))
             }
         } catch (error) {
-            console.log("Error al cargar las subtareas:", error);
+            console.log("Error al cargar las subtareas:", error)
         }
     }
 
     const toggleAddSubtaskField = () => {
-        setIsAddingSubtask((prev) => !prev);
+        setIsAddingSubtask((prev) => !prev)
         if (isAddingSubtask && subtask.trim() !== "") {
-            addSubtask();
+            addSubtask()
         }
     }
 
     const deleteSubtask = async (index) => {
         try {
-            const updatedSubtasksList = [...subtasksList];
-            updatedSubtasksList.splice(index, 1);
-            await AsyncStorage.setItem(`subtasksList_${params?.id}`, JSON.stringify(updatedSubtasksList));
-            setSubtasksList(updatedSubtasksList);
+            const updatedSubtasksList = [...subtasksList]
+            updatedSubtasksList.splice(index, 1)
+            await AsyncStorage.setItem(`subtasksList_${params?.id}`, JSON.stringify(updatedSubtasksList))
+            setSubtasksList(updatedSubtasksList)
         } catch (error) {
-            console.log("Error al eliminar la subtarea:", error);
+            console.log("Error al eliminar la subtarea:", error)
         }
     }
 
@@ -123,7 +140,20 @@ const Info = () => {
                 <TouchableOpacity onPress={handleBackPress}>
                     <AntDesign name="arrowleft" size={24} color="black" />
                 </TouchableOpacity>
-                <Entypo name="dots-three-vertical" size={24} color="black" />
+
+                <Pressable onPress={toggleOptions}>
+                    <Entypo name="dots-three-vertical" size={24} color="black" />
+                </Pressable>
+
+                <Animated.View style={{ opacity: fadeAnim, position: "absolute", top: 30, right: 5 }}>
+                    {showOptions && (
+                        <View style={{ backgroundColor: "white", padding: 15, borderRadius: 5, elevation: 5 }}>
+                            <Pressable onPress={() => console.log("Editar tarea")}>
+                                <Text style={styles.optionText}>Editar tarea</Text>
+                            </Pressable>
+                        </View>
+                    )}
+                </Animated.View>
             </View>
 
             <View style={{ marginTop: 5 }}>
@@ -153,10 +183,10 @@ const Info = () => {
                         value={subtask}
                         onChangeText={handleSubtaskChange}
                         placeholder="Introduce una subtarea"
-                        style={{ padding: 10, borderColor: "#e0e0e0", borderWidth: 1, borderRadius: 5, marginTop: 10, fontWeight:"500"}}
+                        style={{ padding: 10, borderColor: "#e0e0e0", borderWidth: 1, borderRadius: 5, marginTop: 10, fontWeight: "500" }}
                     />
                     <Pressable onPress={toggleAddSubtaskField} style={{ backgroundColor: "#406ef2", padding: 10, borderRadius: 5, marginTop: 10 }}>
-                        <Text style={{ color: "white", textAlign: "center", fontWeight:"700"}}>Agregar subtarea</Text>
+                        <Text style={{ color: "white", textAlign: "center", fontWeight: "700" }}>Agregar subtarea</Text>
                     </Pressable>
                 </View>
             )}
@@ -171,13 +201,13 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <AntDesign name="calendar" size={24} color="black" />
-                        <Text style={{fontWeight:"700"}}>Fecha actual</Text>
+                        <Text style={{ fontWeight: "700" }}>Fecha actual</Text>
                     </View>
 
                     <Pressable
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text style={{fontWeight:"400"}}>{currentDate}</Text>
+                        <Text style={{ fontWeight: "400" }}>{currentDate}</Text>
                     </Pressable>
 
                 </View>
@@ -193,14 +223,14 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <Ionicons name="time-outline" size={24} color="black" />
-                        <Text style={{fontWeight:"700"}}>Recordatorio</Text>
+                        <Text style={{ fontWeight: "700" }}>Recordatorio</Text>
                     </View>
 
                     <Pressable
                         onPress={toggleReminder}
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text style={{fontWeight:"400"}}>{reminder}</Text>
+                        <Text style={{ fontWeight: "400" }}>{reminder}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -215,13 +245,13 @@ const Info = () => {
                 >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
                         <SimpleLineIcons name="note" size={24} color="black" />
-                        <Text style={{fontWeight:"700"}}>Notas</Text>
+                        <Text style={{ fontWeight: "700" }}>Notas</Text>
                     </View>
 
                     <Pressable
                         style={{ backgroundColor: "#e7edfd", padding: 7, borderRadius: 6 }}
                     >
-                        <Text style={{fontWeight:"400"}}>{subtasksList.length > 0 ? "Añadido" : "No añadido"}</Text>
+                        <Text style={{ fontWeight: "400" }}>{subtasksList.length > 0 ? "Añadido" : "No añadido"}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -230,7 +260,7 @@ const Info = () => {
                 {subtasksList.map((subtask, index) => (
                     <Pressable key={index} onPress={() => deleteSubtask(index)} style={styles.subtaskContainer}>
                         <MaterialCommunityIcons name="pencil-outline" size={20} color="black" />
-                        <Text style={{ marginLeft: 5 , fontWeight:"500" }}>{subtask}</Text>
+                        <Text style={{ marginLeft: 5, fontWeight: "500" }}>{subtask}</Text>
                     </Pressable>
                 ))}
             </ScrollView>

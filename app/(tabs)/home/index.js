@@ -1,18 +1,18 @@
-import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { AntDesign } from '@expo/vector-icons';
-import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals';
-import { Ionicons } from '@expo/vector-icons';
-import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { Entypo } from '@expo/vector-icons';
-import axios from 'axios';
-import moment from "moment";
-import 'moment/locale/es';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity, Animated } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { AntDesign } from '@expo/vector-icons'
+import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals'
+import { Ionicons } from '@expo/vector-icons'
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
+import { Entypo } from '@expo/vector-icons'
+import axios from 'axios'
+import moment from "moment"
+import 'moment/locale/es'
+import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const index = () => {
-  const router = useRouter();
+  const router = useRouter()
   const [todos, setTodos] = useState([])
   const today = moment().locale('es').format("D [de] MMMM [de] YYYY")
   const [isModalVisible, setModalVisible] = useState(false)
@@ -24,7 +24,6 @@ const index = () => {
   const [taskFlags, setTaskFlags] = useState({})
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState(false)
-  const [showOptions, setShowOptions] = useState(false)
 
 
   const suggestions = [
@@ -54,17 +53,10 @@ const index = () => {
     },
   ]
 
-  const showOptionsPopup = () => {
-    setShowOptions(true);
-  }
-
-  const hideOptionsPopup = () => {
-    setShowOptions(false);
-  }
 
   // const selectCategory = (category) => {
-  //   setCategory(category);
-  //   setModalVisible(false);
+  //   setCategory(category)
+  //   setModalVisible(false)
   // }
 
   const addTodo = async () => {
@@ -72,7 +64,7 @@ const index = () => {
       const todoData = {
         title: todo,
         category: category,
-      };
+      }
 
       const response = await axios.post("http://192.168.1.60:3000/todos/66101c893f899ce3920eab80", todoData)
       console.log(response.data)
@@ -88,11 +80,11 @@ const index = () => {
       }
 
       setModalVisible(false)
-      setTodo("");
+      setTodo("")
     } catch (error) {
       console.log(error)
     }
-  };
+  }
 
 
 
@@ -111,18 +103,18 @@ const index = () => {
     try {
       const response = await axios.get(`http://192.168.1.60:3000/users/66101c893f899ce3920eab80/todos`)
 
-      setTodos(response.data.todos || []);
+      setTodos(response.data.todos || [])
 
       const pending = response.data.todos.filter((todo) => todo.status !== "completed")
       const completed = response.data.todos.filter((todo) => todo.status === "completed")
 
-      setPendingTodos(pending);
-      setCompletedTodos(completed);
-      // const initialFlags = {};
+      setPendingTodos(pending)
+      setCompletedTodos(completed)
+      // const initialFlags = {}
       // response.data.todos.forEach(todo => {
-      //   initialFlags[todo._id] = false;
-      // });
-      // setTaskFlags(initialFlags);
+      //   initialFlags[todo._id] = false
+      // })
+      // setTaskFlags(initialFlags)
     } catch (error) {
       console.log(error)
     }
@@ -134,7 +126,7 @@ const index = () => {
       const response = await axios.patch(`http://192.168.1.60:3000/todos/${todoId}/complete`)
       console.log(response.data)
 
-      await getUserTodos();
+      await getUserTodos()
     } catch (error) {
       console.log(error)
     }
@@ -142,24 +134,24 @@ const index = () => {
 
   const deleteTodo = async (todoId) => {
     try {
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`);
-      console.log(response.data);
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`)
+      console.log(response.data)
 
-      await getUserTodos();
+      await getUserTodos()
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/66101c893f899ce3920eab80`);
-      console.log(response.data);
-      await getUserTodos();
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/66101c893f899ce3920eab80`)
+      console.log(response.data)
+      await getUserTodos()
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
-  };
+  }
 
 
   console.log("completed", completedTodos)
@@ -167,25 +159,25 @@ const index = () => {
 
   const toggleFlag = async (taskId) => {
     try {
-      const updatedFlags = { ...taskFlags, [taskId]: !taskFlags[taskId] };
-      setTaskFlags(updatedFlags);
-      await AsyncStorage.setItem(taskId, updatedFlags[taskId] ? 'true' : 'false');
+      const updatedFlags = { ...taskFlags, [taskId]: !taskFlags[taskId] }
+      setTaskFlags(updatedFlags)
+      await AsyncStorage.setItem(taskId, updatedFlags[taskId] ? 'true' : 'false')
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
   const loadTaskFlags = async () => {
     try {
-      const keys = await AsyncStorage.getAllKeys();
-      const storedFlags = {};
+      const keys = await AsyncStorage.getAllKeys()
+      const storedFlags = {}
       for (const key of keys) {
-        const value = await AsyncStorage.getItem(key);
-        storedFlags[key] = value === 'true';
+        const value = await AsyncStorage.getItem(key)
+        storedFlags[key] = value === 'true'
       }
-      setTaskFlags(storedFlags);
+      setTaskFlags(storedFlags)
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
@@ -258,7 +250,7 @@ const index = () => {
                         createdAt: item?.createdAt,
                         dueDate: item?.dueDate,
                       },
-                    });
+                    })
                   }}
                   style={{ backgroundColor: "#e7edfd", padding: 10, borderRadius: 7, marginVertical: 10 }} key={index}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -408,9 +400,9 @@ const index = () => {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.yesButton]}
                     onPress={() => {
-                      setDeleteConfirmation(true);
-                      deleteAllTodos();
-                      setShowConfirmationModal(false);
+                      setDeleteConfirmation(true)
+                      deleteAllTodos()
+                      setShowConfirmationModal(false)
                     }}
                   >
                     <Text style={styles.modalButtonText}>Sí</Text>

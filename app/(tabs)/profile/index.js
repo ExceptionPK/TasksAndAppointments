@@ -1,22 +1,22 @@
-import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated } from "react-native";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { LineChart } from "react-native-chart-kit";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { SimpleLineIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated } from "react-native"
+import React, { useState, useEffect } from "react"
+import axios from "axios"
+import { LineChart } from "react-native-chart-kit"
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useRouter } from 'expo-router'
+import { SimpleLineIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 
 const index = () => {
-  const router = useRouter();
-  const [completedTasks, setCompletedTasks] = useState(0);
-  const [pendingTasks, setPendingTasks] = useState(0);
-  const [showOptions, setShowOptions] = useState(false);
-  const [rotation] = useState(new Animated.Value(0));
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const router = useRouter()
+  const [completedTasks, setCompletedTasks] = useState(0)
+  const [pendingTasks, setPendingTasks] = useState(0)
+  const [showOptions, setShowOptions] = useState(false)
+  const [rotation] = useState(new Animated.Value(0))
+  const [fadeAnim] = useState(new Animated.Value(0))
 
   const toggleOptions = () => {
-    setShowOptions(!showOptions);
+    setShowOptions(!showOptions)
     Animated.timing(
       rotation,
       {
@@ -33,7 +33,7 @@ const index = () => {
         duration: 200,
         useNativeDriver: true,
       }
-    ).start();
+    ).start()
   }
 
   const spin = rotation.interpolate({
@@ -43,30 +43,30 @@ const index = () => {
 
   const fetchTaskData = async () => {
     try {
-      const response = await axios.get("http://192.168.1.60:3000/todos/count");
-      const { totalCompletedTodos, totalPendingTodos } = response.data;
-      setCompletedTasks(totalCompletedTodos);
-      setPendingTasks(totalPendingTodos);
+      const response = await axios.get("http://192.168.1.60:3000/todos/count")
+      const { totalCompletedTodos, totalPendingTodos } = response.data
+      setCompletedTasks(totalCompletedTodos)
+      setPendingTasks(totalPendingTodos)
     } catch (error) {
-      console.log("error", error);
+      console.log("error", error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchTaskData();
-    const interval = setInterval(fetchTaskData, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchTaskData()
+    const interval = setInterval(fetchTaskData, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
-  console.log("comp", completedTasks);
-  console.log("pending", pendingTasks);
+  console.log("comp", completedTasks)
+  console.log("pending", pendingTasks)
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem("authToken");
-      router.replace("/login");
+      await AsyncStorage.removeItem("authToken")
+      router.replace("/login")
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
@@ -197,9 +197,9 @@ const index = () => {
       </Animated.View>
 
     </View>
-  );
-};
+  )
+}
 
-export default index;
+export default index
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({})

@@ -1,16 +1,16 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { MaterialIcons } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const login = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+    const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false)
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
     const router = useRouter()
 
     useEffect(() => {
@@ -28,20 +28,41 @@ const login = () => {
     }, [])
 
     const handleLogin = () => {
-        const trimmedEmail = email.trim();
-        const trimmedPassword = password.trim();
+        const trimmedEmail = email.trim()
+        const trimmedPassword = password.trim()
+
+        if (!trimmedEmail || !trimmedPassword) {
+            Alert.alert("Campos vacíos", "Por favor, completa todos los campos.")
+            return
+        }
+
+        const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailEncript.test(trimmedEmail) || !trimmedEmail.endsWith("@gmail.com")) {
+            Alert.alert("Correo electrónico inválido", "Por favor, introduce un correo electrónico válido.")
+            return;
+        }
 
         const user = {
             email: trimmedEmail,
             password: trimmedPassword
         }
 
-        axios.post("http://192.168.1.60:3000/login", user).then((response) => {
-            const token = response.data.token;
-            AsyncStorage.setItem("authToken", token)
-            router.replace("/(tabs)/home")
-        })
+        axios.post("http://192.168.1.60:3000/login", user)
+            .then((response) => {
+                const token = response.data.token
+                AsyncStorage.setItem("authToken", token)
+                router.replace("/(tabs)/home")
+            })
+            .catch((error) => {
+                if (error.response && error.response.status === 401) {
+                    Alert.alert("Credenciales incorrectas", "El correo electrónico o la contraseña proporcionados no son válidos.")
+                } else {
+                    console.error("Error en la solicitud de inicio de sesión:", error)
+                    Alert.alert("Error", "Ha ocurrido un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.")
+                }
+            })
     }
+
 
     const handleForgotPassword = () => {
         setIsForgotPasswordModalVisible(true)
@@ -53,28 +74,29 @@ const login = () => {
     }
 
     const handleSendPasswordResetEmail = async () => {
-        try {
-            const trimmedForgotPasswordEmail = forgotPasswordEmail.trim();
-
-            await axios.post("http://192.168.1.60:3000/forgot-password", { email: trimmedForgotPasswordEmail });
-
-            alert("Se ha enviado un correo electrónico de restablecimiento de contraseña.");
-
-            handleCloseForgotPasswordModal();
-        } catch (error) {
-            console.log(error);
-            alert("Hubo un error al enviar el correo electrónico de restablecimiento de contraseña.");
+        if (!forgotPasswordEmail.trim()) {
+            Alert.alert("Campo vacío", "Por favor, ingresa tu correo electrónico.");
+            return;
         }
-    };
+
+        try {
+            await axios.post("http://192.168.1.60:3000/forgot-password", { email: forgotPasswordEmail })
+            Alert.alert("Correo enviado", "Se ha enviado un correo electrónico de restablecimiento de contraseña.")
+            handleCloseForgotPasswordModal()
+        } catch (error) {
+            console.log(error)
+            Alert.alert("Error de envío", "Hubo un error al enviar el correo electrónico de restablecimiento de contraseña. Comprueba que has ingresado bien el correo electrónico.")
+        }
+    }
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}>
             <View style={{ marginTop: 80 }}>
-                <Text style={{ fontSize: 30, fontWeight: 600, color: "#406ef2" }}>TASKS & APPOINTMENTS</Text>
+                <Text style={{ fontSize: 30, fontWeight: 800, color: "#406ef2" }}>TASKS & APPOINTMENTS</Text>
             </View>
             <KeyboardAvoidingView style={{ width: 300 }}>
                 <View style={{ alignItems: "center" }}>
-                    <Text style={{ fontSize: 18, fontWeight: "600", marginTop: 20 }}>Inicia sesión</Text>
+                    <Text style={{ fontSize: 18, fontWeight: "700", marginTop: 20 }}>Inicia sesión</Text>
                 </View>
 
                 <View style={{ marginTop: 70 }}>
@@ -82,7 +104,11 @@ const login = () => {
                         <MaterialIcons style={{ marginLeft: 8, color: "gray" }} name="email" size={24} color="black" />
                         <TextInput
                             value={email}
-                            onChangeText={(text) => setEmail(text.trim())}
+                            onChangeText={(text) => {
+                                if (text.length <= 40) {
+                                    setEmail(text.trim())
+                                }
+                            }}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -97,7 +123,11 @@ const login = () => {
                         <TextInput
                             value={password}
                             secureTextEntry={true}
-                            onChangeText={(text) => setPassword(text.trim())}
+                            onChangeText={(text) => {
+                                if (text.length <= 14) {
+                                    setPassword(text.trim())
+                                }
+                            }}
                             style={{
                                 color: "gray",
                                 marginVertical: 10,
@@ -105,6 +135,7 @@ const login = () => {
                                 fontSize: email ? 18 : 18
                             }}
                             placeholder='Introduce tu contraseña'></TextInput>
+
                     </View>
 
                     <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, justifyContent: "space-between" }}>
@@ -138,16 +169,25 @@ const login = () => {
                             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>Recuperar contraseña</Text>
                             <TextInput
                                 value={forgotPasswordEmail}
-                                onChangeText={setForgotPasswordEmail}
+                                onChangeText={(text) => {
+                                    if (text.length <= 40) {
+                                        setForgotPasswordEmail(text.trim())
+                                    }
+                                }}
                                 placeholder="Correo electrónico"
                                 style={styles.input}
                             />
-                            <Pressable onPress={handleSendPasswordResetEmail} style={styles.sendButton}>
-                                <Text style={{ color: "white" }}>Enviar</Text>
-                            </Pressable>
-                            <Pressable onPress={handleCloseForgotPasswordModal} style={styles.closeButton}>
-                                <Text style={{ color: "white" }}>Cerrar</Text>
-                            </Pressable>
+
+                            <View style={styles.buttonContainer}>
+                                <Pressable onPress={handleSendPasswordResetEmail} style={[styles.button, { backgroundColor: '#406ef2' }]}>
+                                    <Text style={{ color: "white", textAlign: "center" }}>Enviar</Text>
+                                </Pressable>
+                                <Pressable onPress={handleCloseForgotPasswordModal} style={[styles.button, { backgroundColor: '#ccc' }]}>
+                                    <Text style={{ color: "white", textAlign: "center" }}>Cerrar</Text>
+                                </Pressable>
+                            </View>
+
+
 
                         </View>
                     </View>
@@ -179,16 +219,13 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 20,
     },
-    closeButton: {
-        backgroundColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-        alignItems: 'center',
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
-    sendButton: {
-        backgroundColor: '#406ef2',
-        padding: 10,
+    button: {
+        width: '45%',
+        paddingVertical: 10,
         borderRadius: 5,
         alignItems: 'center',
     },

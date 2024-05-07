@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router'
-import { FontAwesome } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { View } from 'react-native'
 
 export default function Layout() {
     return (
