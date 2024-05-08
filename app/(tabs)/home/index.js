@@ -1,4 +1,4 @@
-import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity, Animated } from 'react-native'
+import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity, Animated, ToastAndroid } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals'
@@ -6,67 +6,47 @@ import { Ionicons } from '@expo/vector-icons'
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons'
 import { Entypo } from '@expo/vector-icons'
 import axios from 'axios'
-import moment from "moment"
+import moment from 'moment'
 import 'moment/locale/es'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 const index = () => {
   const router = useRouter()
   const [todos, setTodos] = useState([])
-  const today = moment().locale('es').format("D [de] MMMM [de] YYYY")
+  const today = moment().locale('es').format('DD/MM/YYYY')
   const [isModalVisible, setModalVisible] = useState(false)
-  const [category, setCategory] = useState("Todas")
-  const [todo, setTodo] = useState("")
+  const [category, setCategory] = useState('Todas')
+  const [todo, setTodo] = useState('')
   const [pendingTodos, setPendingTodos] = useState([])
   const [completedTodos, setCompletedTodos] = useState([])
   const [marked, setMarked] = useState(false)
   const [taskFlags, setTaskFlags] = useState({})
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState(false)
-
 
   const suggestions = [
-    {
-      id: "0",
-      todo: "Hacer ejercicio",
-    },
-    {
-      id: "1",
-      todo: "Comprar tomates",
-    },
-    {
-      id: "3",
-      todo: "Tomar pastilla",
-    },
-    {
-      id: "4",
-      todo: "Realizar vista del perfil",
-    },
-    {
-      id: "5",
-      todo: "Hacer powerpoint de TFG",
-    },
-    {
-      id: "6",
-      todo: "Realizar documentación",
-    },
+    { id: '0', todo: 'Hacer ejercicio' },
+    { id: '1', todo: 'Comprar tomates' },
+    { id: '3', todo: 'Tomar pastilla' },
+    { id: '4', todo: 'Realizar vista del perfil' },
+    { id: '5', todo: 'Hacer powerpoint de TFG' },
+    { id: '6', todo: 'Realizar documentación' },
   ]
-
-
-  // const selectCategory = (category) => {
-  //   setCategory(category)
-  //   setModalVisible(false)
-  // }
 
   const addTodo = async () => {
     try {
+      if (!todo.trim()) {
+        ToastAndroid.show('Por favor, escribe una tarea primero.', ToastAndroid.SHORT)
+        return
+      }
+
       const todoData = {
         title: todo,
         category: category,
       }
 
-      const response = await axios.post("http://192.168.1.60:3000/todos/66101c893f899ce3920eab80", todoData)
+      const response = await axios.post('http://192.168.30.174:3000/todos/66101c893f899ce3920eab80', todoData)
       console.log(response.data)
 
       const newTodo = response.data.todo
@@ -80,7 +60,7 @@ const index = () => {
       }
 
       setModalVisible(false)
-      setTodo("")
+      setTodo('')
     } catch (error) {
       console.log(error)
     }
@@ -88,9 +68,10 @@ const index = () => {
 
 
 
+
   useEffect(() => {
     getUserTodos()
-  }, [marked])
+  }, [marked, category])
 
   useEffect(() => {
     if (!isModalVisible) {
@@ -101,20 +82,18 @@ const index = () => {
 
   const getUserTodos = async () => {
     try {
-      const response = await axios.get(`http://192.168.1.60:3000/users/66101c893f899ce3920eab80/todos`)
+      const response = await axios.get(`http://192.168.30.174:3000/users/66101c893f899ce3920eab80/todos`)
 
-      setTodos(response.data.todos || [])
+      const allTodos = response.data.todos || []
+      setTodos(allTodos)
 
-      const pending = response.data.todos.filter((todo) => todo.status !== "completed")
-      const completed = response.data.todos.filter((todo) => todo.status === "completed")
+      const filteredTodos = category === 'Todas' ? allTodos : allTodos.filter(todo => todo.category === category)
+
+      const pending = filteredTodos.filter((todo) => todo.status !== 'completed')
+      const completed = filteredTodos.filter((todo) => todo.status === 'completed')
 
       setPendingTodos(pending)
       setCompletedTodos(completed)
-      // const initialFlags = {}
-      // response.data.todos.forEach(todo => {
-      //   initialFlags[todo._id] = false
-      // })
-      // setTaskFlags(initialFlags)
     } catch (error) {
       console.log(error)
     }
@@ -123,7 +102,7 @@ const index = () => {
   const markTodoAsCompleted = async (todoId) => {
     try {
       setMarked(true)
-      const response = await axios.patch(`http://192.168.1.60:3000/todos/${todoId}/complete`)
+      const response = await axios.patch(`http://192.168.30.174:3000/todos/${todoId}/complete`)
       console.log(response.data)
 
       await getUserTodos()
@@ -134,7 +113,7 @@ const index = () => {
 
   const deleteTodo = async (todoId) => {
     try {
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`)
+      const response = await axios.delete(`http://192.168.30.174:3000/todos/${todoId}`)
       console.log(response.data)
 
       await getUserTodos()
@@ -145,7 +124,7 @@ const index = () => {
 
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/66101c893f899ce3920eab80`)
+      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/66101c893f899ce3920eab80`)
       console.log(response.data)
       await getUserTodos()
     } catch (error) {
@@ -153,9 +132,8 @@ const index = () => {
     }
   }
 
-
-  console.log("completed", completedTodos)
-  console.log("pending", pendingTodos)
+  console.log('completed', completedTodos)
+  console.log('pending', pendingTodos)
 
   const toggleFlag = async (taskId) => {
     try {
@@ -181,68 +159,55 @@ const index = () => {
     }
   }
 
+  const handleCategoryChange = (newCategory) => {
+    setCategory(newCategory)
+  }
 
 
   return (
     <>
-      <View style={{ marginHorizontal: 10, marginVertical: 10, flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Pressable
-          style={{
-            backgroundColor: "#7799f9",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 10,
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center", fontWeight:"600" }}>Todas</Text>
+      <View style={{ marginHorizontal: 10, marginVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Pressable style={[styles.categoryButton, category === 'Todas' && styles.activeCategoryButton]} onPress={() => handleCategoryChange('Todas')}>
+          <Text style={styles.categoryButtonText}>Todas</Text>
+        </Pressable>
+        <Pressable style={[styles.categoryButton, category === 'Trabajo' && styles.activeCategoryButton]} onPress={() => handleCategoryChange('Trabajo')}>
+          <Text style={styles.categoryButtonText}>Trabajo</Text>
+        </Pressable>
+        <Pressable style={[styles.categoryButton, category === 'Personal' && styles.activeCategoryButton]} onPress={() => handleCategoryChange('Personal')}>
+          <Text style={styles.categoryButtonText}>Personal</Text>
         </Pressable>
 
-        <Pressable
-          style={{
-            backgroundColor: "#7799f9",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 10,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "white", textAlign: "center", fontWeight:"600" }}>Trabajo</Text>
-        </Pressable>
-
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.6}
           onPress={() => setShowConfirmationModal(true)}
-          style={{
-            backgroundColor: "#f36259",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 10,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: "auto"
-          }}
+          style={{ alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' }}
         >
-          <Text style={{ color: "white", textAlign: "center", fontWeight:"700" }}>Eliminar tareas</Text>
-        </Pressable>
 
-        <Pressable onPress={() => setModalVisible(!isModalVisible)}>
-          <AntDesign name="pluscircle" size={30} color="#406ef2" />
-        </Pressable>
+          <MaterialCommunityIcons name='delete-circle' size={35} color='#ce6464' />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setModalVisible(!isModalVisible)} activeOpacity={0.6}>
+          <AntDesign name='pluscircle' size={30} color='#6689ee' />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1, backgroundColor: "white" }}>
+      <ScrollView style={{ flex: 1, backgroundColor: 'white' }}>
         <View style={{ padding: 10 }}>
-          {todos?.length > 0 ? (
+          {pendingTodos?.length > 0 || completedTodos?.length > 0 ? (
             <View>
-              {pendingTodos?.length > 0 && (<Text style={{fontWeight:"900"}}>Tareas por hacer {today}</Text>)}
+              {pendingTodos?.length > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 }}>
+                  <Text style={{ fontWeight: '900' }}>Tareas por hacer | {today}</Text>
+                  <MaterialIcons name='arrow-drop-down' size={24} color='black' />
+                </View>
+              )}
 
               {pendingTodos?.map((item, index) => (
-                <Pressable
+                <TouchableOpacity
+                  activeOpacity={0.6}
                   onPress={() => {
                     router?.push({
-                      pathname: "/home/info",
+                      pathname: '/home/info',
                       params: {
                         id: item._id,
                         title: item?.title,
@@ -252,69 +217,60 @@ const index = () => {
                       },
                     })
                   }}
-                  style={{ backgroundColor: "#e7edfd", padding: 10, borderRadius: 7, marginVertical: 10 }} key={index}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <Entypo onPress={() => markTodoAsCompleted(item?._id)} name="circle" size={18} color="black" />
-                    <Text style={{ flex: 1, fontWeight:"500" }}>{item?.title}</Text>
+                  style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }} key={index}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
 
-                    {/* <AntDesign 
-                    name={taskFlags[item._id] ? "star" : "staro"}
-                    size={24} 
-                    color={taskFlags[item._id] ? "#ced04d" : "black"}
-                    style={{right:245, bottom:20}}
-                    onPress={() => toggleFlag(item._id)}
-                    /> */}
-                    
-                    <Ionicons
-                      name={taskFlags[item._id] ? "flag" : "flag-outline"}
-                      size={25}
-                      color={taskFlags[item._id] ? "#ce6464" : "black"}
-                      onPress={() => toggleFlag(item._id)}
-                    />
-                    
-                    <MaterialIcons
-                      name="delete-outline"
-                      size={25}
-                      color="#ce6464"
-                      style={{left:5}}
-                      onPress={() => deleteTodo(item._id)}
-                    />
+                    <TouchableOpacity onPress={() => markTodoAsCompleted(item?._id)} activeOpacity={0.5}>
+                      <Entypo name='circle' size={18} color='black' />
+                    </TouchableOpacity>
+                    <Text style={{ flex: 1, fontWeight: '500' }}>{item?.title}</Text>
 
+                    <TouchableOpacity onPress={() => toggleFlag(item._id)} activeOpacity={0.3}>
+                      <Ionicons
+                        name={taskFlags[item._id] ? 'flag' : 'flag-outline'}
+                        size={25}
+                        color={taskFlags[item._id] ? '#ce6464' : 'black'}
+
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => deleteTodo(item._id)} activeOpacity={0.3}>
+
+                      <MaterialIcons
+                        name='delete-outline'
+                        size={25}
+                        color='#ce6464'
+                        style={{ left: 5 }}
+                      />
+                    </TouchableOpacity>
                   </View>
-                </Pressable>
+                </TouchableOpacity>
               ))}
 
               {completedTodos?.length > 0 && (
                 <View>
-                  <View style={{ justifyContent: "center", alignItems: "center", margin: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginVertical: 5, marginTop: 20 }}>
+                    <Text style={{ fontWeight: '900', marginRight: 'auto' }}>Tareas completadas</Text>
+                    <MaterialIcons name='arrow-drop-down' size={24} color='black' />
                   </View>
-
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginVertical: 10 }}>
-                    <Text style={{fontWeight:"900"}}>Tareas completadas</Text>
-                    <MaterialIcons name="arrow-drop-down" size={24} color="black" />
-                  </View>
-
-
                   {completedTodos?.map((item, index) => (
-                    <Pressable style={{ backgroundColor: "#e7edfd", padding: 10, borderRadius: 7, marginVertical: 10 }} key={index}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                        <FontAwesome name="circle" size={18} color="gray" />
-                        <Text style={{ flex: 1, textDecorationLine: "line-through", color: "gray", fontWeight:"500" }}>{item?.title}</Text>
-                        
+                    <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }} key={index}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <FontAwesome name='circle' size={18} color='gray' />
+                        <Text style={{ flex: 1, textDecorationLine: 'line-through', color: 'gray', fontWeight: '500' }}>{item?.title}</Text>
                       </View>
                     </Pressable>
                   ))}
-
                 </View>
               )}
             </View>
           ) : (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 130, marginLeft: "auto", marginRight: "auto" }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 130, marginLeft: 'auto', marginRight: 'auto' }}>
               <Image
-                style={{ width: 280, height: 280, left: 10, resizeMode: "contain" }}
-                source={{ uri: "https://www.pngall.com/wp-content/uploads/8/Task-List.png" }}
+                style={{ width: 280, height: 280, left: 10, resizeMode: 'contain' }}
+                source={{ uri: 'https://www.pngall.com/wp-content/uploads/8/Task-List.png' }}
               />
-              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: "700", textAlign: "center" }}>No hay tareas disponibles. ¡Añade una tarea!</Text>
+              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700', textAlign: 'center' }}>No hay tareas disponibles en esta categoría. ¡Añade una tarea!</Text>
             </View>
           )}
         </View>
@@ -322,64 +278,55 @@ const index = () => {
 
 
       <BottomModal
-        onBackdropPress={() => setModalVisible(!isModalVisible)}
-        onHardwareBackPress={() => setModalVisible(!isModalVisible)}
-        swipeDirection={["up", "down"]}
+        onBackdropPress={() => setModalVisible(false)}
+        onHardwareBackPress={() => setModalVisible(false)}
+        swipeDirection={['up', 'down']}
         swipeThreshold={200}
-        modalTitle={<ModalTitle titleStyle={{fontWeight: "900"}} title='Añadir una tarea' />}
-        modalAnimation={
-          new SlideAnimation({
-            slideFrom: "bottom",
-          })
-        }
+        modalTitle={<ModalTitle titleStyle={{ fontWeight: '900' }} title='Añadir una tarea' />}
+        modalAnimation={new SlideAnimation({ slideFrom: 'bottom' })}
         visible={isModalVisible}
-        onTouchOutside={() => setModalVisible(!isModalVisible)}
+        onTouchOutside={() => setModalVisible(false)}
       >
-        <ModalContent style={{ width: "100%", height: 280 }}>
-          <View style={{ marginVertical: 10, flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <ModalContent style={{ width: '100%', height: 280 }}>
+          <View style={{ marginVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <TextInput
               value={todo}
               onChangeText={(text) => setTodo(text)}
               placeholder='Escribe una nueva tarea'
-              style={{ padding: 10, borderColor: "#e0e0e0", borderWidth: 1, borderRadius: 5, flex: 1, fontWeight:"500" }}
+              style={{ padding: 10, borderColor: '#e0e0e0', borderWidth: 1, borderRadius: 5, flex: 1, fontWeight: '500' }}
             />
-            <Ionicons style={{ left: 5 }} onPress={addTodo} name="send" size={30} color="#406ef2" />
-          </View>
-
-          <Text style={{fontWeight:"700"}}>Elige la categoría</Text>
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 10 }}>
-            <Pressable
-              onPress={() => setCategory("Trabajo")}
-              style={{
-                borderColor: "#e0e0e0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 10
-              }}>
-              <Text style={{fontWeight:"500"}}>Trabajo</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setCategory("Personal")}
-              style={{
-                borderColor: "#e0e0e0",
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 10
-              }}>
-              <Text style={{fontWeight:"500"}}>Personal</Text>
-            </Pressable>
+            <TouchableOpacity activeOpacity={0.6} onPress={addTodo}>
+              <Ionicons style={{ left: 5 }} name='send' size={30} color='#6689ee' />
+            </TouchableOpacity>
 
           </View>
 
-          <Text style={{fontWeight:"700", marginTop:10}}>Sugerencias</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap", marginVertical: 10 }}>
-            {suggestions?.map((item, index) => (
-              <Pressable onPress={() => setTodo(item?.todo)} style={{ backgroundColor: "#f0f8ff", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }} key={index}>
-                <Text style={{ textAlign: "center", fontWeight:"500" }}>{item?.todo}</Text>
-              </Pressable>
+          <Text style={{ fontWeight: '700' }}>Elige la categoría</Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 10 }}>
+            <Pressable
+              style={[styles.categoryButtonModal, category === 'Todas' && styles.activeCategoryButtonModal]} onPress={() => handleCategoryChange('Todas')}
+            >
+              <Text style={{ fontWeight: '500' }}>Todas</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.categoryButtonModal, category === 'Trabajo' && styles.activeCategoryButtonModal]} onPress={() => handleCategoryChange('Trabajo')}
+            >
+              <Text style={{ fontWeight: '500' }}>Trabajo</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.categoryButtonModal, category === 'Personal' && styles.activeCategoryButtonModal]} onPress={() => handleCategoryChange('Personal')}
+            >
+              <Text style={{ fontWeight: '500' }}>Personal</Text>
+            </Pressable>
+          </View>
+
+          <Text style={{ fontWeight: '700', marginTop: 10 }}>Sugerencias</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginVertical: 10 }}>
+            {suggestions.map((item, index) => (
+              <TouchableOpacity activeOpacity={0.6} key={index} onPress={() => setTodo(item.todo)} style={{ backgroundColor: '#f0f8ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }}>
+                <Text style={{ textAlign: 'center', fontWeight: '500' }}>{item.todo}</Text>
+              </TouchableOpacity>
             ))}
           </View>
         </ModalContent>
@@ -388,7 +335,7 @@ const index = () => {
       <Modal
         visible={showConfirmationModal}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={() => setShowConfirmationModal(false)}
       >
         <View style={styles.modalContainer}>
@@ -400,16 +347,17 @@ const index = () => {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.yesButton]}
                     onPress={() => {
-                      setDeleteConfirmation(true)
-                      deleteAllTodos()
                       setShowConfirmationModal(false)
+                      deleteAllTodos()
                     }}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.modalButtonText}>Sí</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.noButton]}
                     onPress={() => setShowConfirmationModal(false)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.modalButtonText}>No</Text>
                   </TouchableOpacity>
@@ -422,6 +370,7 @@ const index = () => {
                   <TouchableOpacity
                     style={[styles.modalButton, { backgroundColor: '#7799f9' }]}
                     onPress={() => setShowConfirmationModal(false)}
+                    activeOpacity={0.7}
                   >
                     <Text style={styles.modalButtonText}>Ok</Text>
                   </TouchableOpacity>
@@ -477,4 +426,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#7799f9',
     marginLeft: 5,
   },
+  categoryButton: {
+    backgroundColor: '#bfbfbf',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  activeCategoryButton: {
+    backgroundColor: '#6689ee',
+  },
+  categoryButtonText: {
+    fontWeight: '600',
+    color: 'white',
+  },
+  categoryButtonModal: {
+    borderColor: '#e0e0e0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderRadius: 10
+  },
+  activeCategoryButtonModal: {
+    backgroundColor: '#e7e6e6',
+  }
 })

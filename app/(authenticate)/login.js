@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal, Alert } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal, Alert, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { AntDesign } from '@expo/vector-icons'
@@ -7,18 +7,18 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const login = () => {
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
     const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false)
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
     const router = useRouter()
 
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-                const token = await AsyncStorage.getItem("authToken")
+                const token = await AsyncStorage.getItem('authToken')
                 if (token) {
-                    router.replace("/(tabs)/home")
+                    router.replace('/(tabs)/home')
                 }
             } catch (error) {
                 console.log(error)
@@ -32,13 +32,13 @@ const login = () => {
         const trimmedPassword = password.trim()
 
         if (!trimmedEmail || !trimmedPassword) {
-            Alert.alert("Campos vacíos", "Por favor, completa todos los campos.")
+            Alert.alert('Campos vacíos', 'Por favor, completa todos los campos.')
             return
         }
 
         const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailEncript.test(trimmedEmail) || !trimmedEmail.endsWith("@gmail.com")) {
-            Alert.alert("Correo electrónico inválido", "Por favor, introduce un correo electrónico válido.")
+        if (!emailEncript.test(trimmedEmail) || !trimmedEmail.endsWith('@gmail.com')) {
+            Alert.alert('Correo electrónico inválido', 'Por favor, introduce un correo electrónico válido.')
             return;
         }
 
@@ -47,18 +47,18 @@ const login = () => {
             password: trimmedPassword
         }
 
-        axios.post("http://192.168.1.60:3000/login", user)
+        axios.post('http://192.168.30.174:3000/login', user)
             .then((response) => {
                 const token = response.data.token
-                AsyncStorage.setItem("authToken", token)
-                router.replace("/(tabs)/home")
+                AsyncStorage.setItem('authToken', token)
+                router.replace('/(tabs)/home')
             })
             .catch((error) => {
                 if (error.response && error.response.status === 401) {
-                    Alert.alert("Credenciales incorrectas", "El correo electrónico o la contraseña proporcionados no son válidos.")
+                    Alert.alert('Credenciales incorrectas', 'El correo electrónico o la contraseña proporcionados no son válidos.')
                 } else {
-                    console.error("Error en la solicitud de inicio de sesión:", error)
-                    Alert.alert("Error", "Ha ocurrido un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.")
+                    console.error('Error en la solicitud de inicio de sesión:', error)
+                    Alert.alert('Error', 'Ha ocurrido un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.')
                 }
             })
     }
@@ -70,38 +70,38 @@ const login = () => {
 
     const handleCloseForgotPasswordModal = () => {
         setIsForgotPasswordModalVisible(false)
-        setForgotPasswordEmail("")
+        setForgotPasswordEmail('')
     }
 
     const handleSendPasswordResetEmail = async () => {
         if (!forgotPasswordEmail.trim()) {
-            Alert.alert("Campo vacío", "Por favor, ingresa tu correo electrónico.");
+            Alert.alert('Campo vacío', 'Por favor, ingresa tu correo electrónico.');
             return;
         }
 
         try {
-            await axios.post("http://192.168.1.60:3000/forgot-password", { email: forgotPasswordEmail })
-            Alert.alert("Correo enviado", "Se ha enviado un correo electrónico de restablecimiento de contraseña.")
+            await axios.post('http://192.168.30.174:3000/forgot-password', { email: forgotPasswordEmail })
+            Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico de restablecimiento de contraseña.')
             handleCloseForgotPasswordModal()
         } catch (error) {
             console.log(error)
-            Alert.alert("Error de envío", "Hubo un error al enviar el correo electrónico de restablecimiento de contraseña. Comprueba que has ingresado bien el correo electrónico.")
+            Alert.alert('Error de envío', 'Hubo un error al enviar el correo electrónico de restablecimiento de contraseña. Comprueba que has ingresado bien el correo electrónico.')
         }
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "white", alignItems: "center" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center' }}>
             <View style={{ marginTop: 80 }}>
-                <Text style={{ fontSize: 30, fontWeight: 800, color: "#406ef2" }}>TASKS & APPOINTMENTS</Text>
+                <Text style={{ fontSize: 30, fontWeight: 800, color: '#406ef2' }}>TASKS & APPOINTMENTS</Text>
             </View>
             <KeyboardAvoidingView style={{ width: 300 }}>
-                <View style={{ alignItems: "center" }}>
-                    <Text style={{ fontSize: 18, fontWeight: "700", marginTop: 20 }}>Inicia sesión</Text>
+                <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', marginTop: 20 }}>Inicia sesión</Text>
                 </View>
 
                 <View style={{ marginTop: 70 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#e9eaec", paddingVertical: 5, borderRadius: 5, marginTop: 30 }}>
-                        <MaterialIcons style={{ marginLeft: 8, color: "gray" }} name="email" size={24} color="black" />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e9eaec', paddingVertical: 5, borderRadius: 5, marginTop: 30 }}>
+                        <MaterialIcons style={{ marginLeft: 8, color: 'gray' }} name='email' size={24} color='black' />
                         <TextInput
                             value={email}
                             onChangeText={(text) => {
@@ -110,7 +110,7 @@ const login = () => {
                                 }
                             }}
                             style={{
-                                color: "gray",
+                                color: 'gray',
                                 marginVertical: 10,
                                 width: 300,
                                 fontSize: email ? 18 : 18
@@ -118,8 +118,8 @@ const login = () => {
                             placeholder='Introduce tu correo'></TextInput>
                     </View>
 
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#e9eaec", paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
-                        <AntDesign style={{ marginLeft: 8, color: "gray" }} name="lock1" size={24} color="black" />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e9eaec', paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
+                        <AntDesign style={{ marginLeft: 8, color: 'gray' }} name='lock1' size={24} color='black' />
                         <TextInput
                             value={password}
                             secureTextEntry={true}
@@ -129,7 +129,7 @@ const login = () => {
                                 }
                             }}
                             style={{
-                                color: "gray",
+                                color: 'gray',
                                 marginVertical: 10,
                                 width: 300,
                                 fontSize: email ? 18 : 18
@@ -138,30 +138,30 @@ const login = () => {
 
                     </View>
 
-                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, justifyContent: "space-between" }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, justifyContent: 'space-between' }}>
 
                     </View>
 
                     <View style={{ marginTop: 140 }} />
 
-                    <Pressable onPress={handleLogin} style={{ width: 200, backgroundColor: "#406ef2", padding: 15, borderRadius: 5, marginLeft: "auto", marginRight: "auto" }}>
-                        <Text style={{ textAlign: "center", color: "white", fontWeight: "bold", fontSize: 18 }}>Iniciar sesión</Text>
-                    </Pressable>
+                    <TouchableOpacity activeOpacity={0.7} onPress={handleLogin} style={{ width: 200, backgroundColor: '#406ef2', padding: 15, borderRadius: 5, marginLeft: 'auto', marginRight: 'auto' }}>
+                        <Text style={{ textAlign: 'center', color: 'white', fontWeight: 'bold', fontSize: 18 }}>Iniciar sesión</Text>
+                    </TouchableOpacity>
 
-                    <Pressable onPress={() => router.replace("/register")} style={{ marginTop: 15 }}>
-                        <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>¿No tienes una cuenta? Regístrate</Text>
-                    </Pressable>
+                    <TouchableOpacity activeOpacity={0.7} onPress={() => router.replace('/register')} style={{ marginTop: 15 }}>
+                        <Text style={{ textAlign: 'center', color: 'gray', fontSize: 16 }}>¿No tienes una cuenta? Regístrate</Text>
+                    </TouchableOpacity>
 
-                    <Pressable onPress={handleForgotPassword} style={{ marginTop: 15 }}>
-                        <Text style={{ textAlign: "center", color: "#007FFF", fontWeight: 600 }}>Olvidé mi contraseña</Text>
-                    </Pressable>
+                    <TouchableOpacity activeOpacity={0.5} onPress={handleForgotPassword} style={{ marginTop: 15 }}>
+                        <Text style={{ textAlign: 'center', color: '#007FFF', fontWeight: 600 }}>Olvidé mi contraseña</Text>
+                    </TouchableOpacity>
 
                 </View>
 
                 <Modal
                     visible={isForgotPasswordModalVisible}
                     transparent={true}
-                    animationType="fade"
+                    animationType='fade'
                     onRequestClose={handleCloseForgotPasswordModal}
                 >
                     <View style={styles.modalContainer}>
@@ -174,17 +174,17 @@ const login = () => {
                                         setForgotPasswordEmail(text.trim())
                                     }
                                 }}
-                                placeholder="Correo electrónico"
+                                placeholder='Correo electrónico'
                                 style={styles.input}
                             />
 
                             <View style={styles.buttonContainer}>
-                                <Pressable onPress={handleSendPasswordResetEmail} style={[styles.button, { backgroundColor: '#406ef2' }]}>
-                                    <Text style={{ color: "white", textAlign: "center" }}>Enviar</Text>
-                                </Pressable>
-                                <Pressable onPress={handleCloseForgotPasswordModal} style={[styles.button, { backgroundColor: '#ccc' }]}>
-                                    <Text style={{ color: "white", textAlign: "center" }}>Cerrar</Text>
-                                </Pressable>
+                                <TouchableOpacity activeOpacity={0.7} onPress={handleSendPasswordResetEmail} style={[styles.button, { backgroundColor: '#406ef2' }]}>
+                                    <Text style={{ color: 'white', textAlign: 'center' }}>Enviar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity activeOpacity={0.7} onPress={handleCloseForgotPasswordModal} style={[styles.button, { backgroundColor: '#ccc' }]}>
+                                    <Text style={{ color: 'white', textAlign: 'center' }}>Cerrar</Text>
+                                </TouchableOpacity>
                             </View>
 
 

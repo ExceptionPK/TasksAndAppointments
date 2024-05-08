@@ -55,7 +55,6 @@ app.post("/register", async (req, res) => {
 
 const generateSecretKey = () => {
     const secretKey = crypto.randomBytes(32).toString("hex")
-
     return secretKey
 }
 
@@ -161,7 +160,6 @@ app.get("/todos/completed/:date", async (req, res) => {
     }
 })
 
-
 app.get("/todos/count", async (req, res) => {
     try {
         const totalCompletedTodos = await Todo.countDocuments({
@@ -228,7 +226,6 @@ app.delete("/todos/delete-all/:userId", async (req, res) => {
     }
 })
 
-
 app.post("/forgot-password", async (req, res) => {
     try {
         const { email } = req.body
@@ -282,11 +279,8 @@ app.post("/forgot-password", async (req, res) => {
             `
         }
 
-
         await sgMail.send(msg)
-
         res.status(200).json({ title: "Recuperación de contraseña", message: "Se ha enviado un correo electrónico de recuperación de contraseña." })
-
     } catch (error) {
         console.log("Error al enviar el correo electrónico de recuperación de contraseña:", error)
         res.status(500).json({ title: "Error de envío", message: "Hubo un error al enviar el correo electrónico de recuperación de contraseña." })
