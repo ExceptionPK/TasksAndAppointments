@@ -142,11 +142,18 @@ app.patch("/todos/:todoId/complete", async (req, res) => {
     }
 })
 
-app.get("/todos/completed/:date", async (req, res) => {
+app.get("/users/:userId/todos/completed/:date", async (req, res) => {
     try {
+        const userId = req.params.userId
         const date = req.params.date
 
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ error: "El usuario no se ha encontrado." })
+        }
+
         const completedTodos = await Todo.find({
+            _id: { $in: user.todos },
             status: "completed",
             createdAt: {
                 $gte: new Date(`${date}T00:00:00.000Z`),
@@ -160,21 +167,31 @@ app.get("/todos/completed/:date", async (req, res) => {
     }
 })
 
-app.get("/todos/count", async (req, res) => {
+
+app.get("/users/:userId/todos/count", async (req, res) => {
     try {
-        const totalCompletedTodos = await Todo.countDocuments({
-            status: "completed",
-        }).exec()
+      const userId = req.params.userId
 
-        const totalPendingTodos = await Todo.countDocuments({
-            status: "pending",
-        }).exec()
-
-        res.status(200).json({ totalCompletedTodos, totalPendingTodos })
+      const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ error: "El usuario no se ha encontrado." })
+        }
+  
+      const totalCompletedTodos = await Todo.countDocuments({
+        _id: { $in: user.todos },
+        status: "completed",
+      }).exec()
+  
+      const totalPendingTodos = await Todo.countDocuments({
+        _id: { $in: user.todos },
+        status: "pending",
+      }).exec()
+  
+      res.status(200).json({ totalCompletedTodos, totalPendingTodos })
     } catch (error) {
-        res.status(500).json({ error: "Error en la conexión." })
+      res.status(500).json({ error: "Error en la conexión." })
     }
-})
+  })
 
 app.delete("/todos/:todoId", async (req, res) => {
     try {
@@ -255,23 +272,23 @@ app.post("/forgot-password", async (req, res) => {
                 El equipo de soporte técnico
             `,
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <p style="font-size: 16px; line-height: 1.6;">
+                <div style="font-family: Arial, sans-serif max-width: 600px margin: 0 auto">
+                    <p style="font-size: 16px line-height: 1.6">
                         Estimado usuario,
                     </p>
-                    <p style="font-size: 16px; line-height: 1.6;">
+                    <p style="font-size: 16px line-height: 1.6">
                         Hemos recibido una solicitud para restablecer la contraseña asociada a tu cuenta. 
                         Si no has solicitado este cambio, puedes ignorar este mensaje con tranquilidad.
                     </p>
-                    <p style="font-size: 16px; line-height: 1.6;">
+                    <p style="font-size: 16px line-height: 1.6">
                         Para restablecer tu contraseña, haz clic en el siguiente enlace:
-                        <a href="[Enlace para restablecer contraseña]" style="color: #406ef2;">Restablecer contraseña</a>
+                        <a href="[Enlace para restablecer contraseña]" style="color: #406ef2">Restablecer contraseña</a>
                     </p>
-                    <p style="font-size: 16px; line-height: 1.6;">
+                    <p style="font-size: 16px line-height: 1.6">
                         Si el botón de arriba no funciona, copia y pega la siguiente URL en tu navegador web:
                         [URL de restablecimiento de contraseña]
                     </p>
-                    <p style="font-size: 16px; line-height: 1.6;">
+                    <p style="font-size: 16px line-height: 1.6">
                         Atentamente,<br>
                         El equipo de soporte técnico
                     </p>

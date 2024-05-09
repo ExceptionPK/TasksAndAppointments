@@ -1,4 +1,4 @@
-import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewBase, TouchableOpacity, Animated, ToastAndroid } from 'react-native'
+import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity, ToastAndroid } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals'
@@ -11,6 +11,9 @@ import 'moment/locale/es'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { decode as atob } from 'base-64'
+
+
 
 const index = () => {
   const router = useRouter()
@@ -24,6 +27,7 @@ const index = () => {
   const [marked, setMarked] = useState(false)
   const [taskFlags, setTaskFlags] = useState({})
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [userId, setUserId] = useState(null)
 
   const suggestions = [
     { id: '0', todo: 'Hacer ejercicio' },
@@ -33,6 +37,10 @@ const index = () => {
     { id: '5', todo: 'Hacer powerpoint de TFG' },
     { id: '6', todo: 'Realizar documentación' },
   ]
+
+  useEffect(() => {
+    checkAuthenticatedUser()
+  }, [])
 
   const addTodo = async () => {
     try {
@@ -46,14 +54,15 @@ const index = () => {
         category: category,
       }
 
-      const response = await axios.post('http://192.168.30.174:3000/todos/66101c893f899ce3920eab80', todoData)
+      const response = await axios.post(`http://192.168.30.174:3000/todos/${userId}`, todoData)
+
       console.log(response.data)
 
       const newTodo = response.data.todo
 
       setTodos([...todos, newTodo])
 
-      if (newTodo.status === 'completed') {
+      if (newTodo && newTodo.status === 'completed') {
         setCompletedTodos([...completedTodos, newTodo])
       } else {
         setPendingTodos([...pendingTodos, newTodo])
@@ -66,12 +75,11 @@ const index = () => {
     }
   }
 
-
-
-
   useEffect(() => {
-    getUserTodos()
-  }, [marked, category])
+    if (userId) {
+      getUserTodos()
+    }
+  }, [userId, marked, category])
 
   useEffect(() => {
     if (!isModalVisible) {
@@ -79,10 +87,24 @@ const index = () => {
     }
   }, [isModalVisible])
 
+  const checkAuthenticatedUser = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken')
+      if (token) {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]))
+        const userId = decodedToken.userId
+        setUserId(userId)
+      } else {
+        router.replace('/login')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const getUserTodos = async () => {
     try {
-      const response = await axios.get(`http://192.168.30.174:3000/users/66101c893f899ce3920eab80/todos`)
+      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos`)
 
       const allTodos = response.data.todos || []
       setTodos(allTodos)
@@ -124,7 +146,7 @@ const index = () => {
 
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/66101c893f899ce3920eab80`)
+      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/${userId}`)
       console.log(response.data)
       await getUserTodos()
     } catch (error) {
@@ -162,7 +184,6 @@ const index = () => {
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory)
   }
-
 
   return (
     <>

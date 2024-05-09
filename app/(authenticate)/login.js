@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Pressable, Modal, Alert, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Modal, Alert, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { AntDesign } from '@expo/vector-icons'

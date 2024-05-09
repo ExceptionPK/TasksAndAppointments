@@ -3,17 +3,50 @@ import React, { useState, useEffect } from 'react'
 import moment from 'moment'
 import { Calendar } from 'react-native-calendars'
 import axios from 'axios'
-import { FontAwesome, Feather, MaterialIcons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons'
+import { decode as atob } from 'base-64'
 
 const Index = () => {
   const today = moment().format('YYYY-MM-DD')
   const [selectedDate, setSelectedDate] = useState(today)
+  const router = useRouter()
   const [todos, setTodos] = useState([])
+  const [userId, setUserId] = useState(null)
+
+  useEffect(() => {
+    checkAuthenticatedUser()
+  }, [])
+
+  const checkAuthenticatedUser = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken')
+      if (token) {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]))
+        const userId = decodedToken.userId
+        setUserId(userId)
+      } else {
+        router.replace('/login')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    if (userId) {
+      fetchCompletedTodos()
+      const interval = setInterval(fetchCompletedTodos, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [selectedDate, userId])
 
   const fetchCompletedTodos = async () => {
     try {
+      if (!userId) return
       const response = await axios.get(
-        `http://192.168.30.174:3000/todos/completed/${selectedDate}`
+        `http://192.168.30.174:3000/users/${userId}/todos/completed/${selectedDate}`
       )
 
       const completedTodos = response.data.completedTodos || []
@@ -22,12 +55,6 @@ const Index = () => {
       console.log('error', error)
     }
   }
-
-  useEffect(() => {
-    fetchCompletedTodos()
-    const interval = setInterval(fetchCompletedTodos, 3000)
-    return () => clearInterval(interval)
-  }, [selectedDate])
 
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString)
@@ -54,7 +81,7 @@ const Index = () => {
             marginHorizontal: 10,
           }}
         >
-          <Text style={{fontWeight:'900', marginRight:'auto'}}>Tareas completadas</Text>
+          <Text style={{ fontWeight: '900', marginRight: 'auto' }}>Tareas completadas</Text>
           <MaterialIcons name='arrow-drop-down' size={24} color='black' />
         </View>
 
@@ -82,7 +109,7 @@ const Index = () => {
                   flex: 1,
                   textDecorationLine: 'line-through',
                   color: 'gray',
-                  fontWeight:'500'
+                  fontWeight: '500'
                 }}
               >
                 {item?.title}

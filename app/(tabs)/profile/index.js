@@ -4,8 +4,8 @@ import axios from 'axios'
 import { LineChart } from 'react-native-chart-kit'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { SimpleLineIcons } from '@expo/vector-icons'
 import { Ionicons } from '@expo/vector-icons'
+import { decode as atob } from 'base-64'
 
 const index = () => {
   const router = useRouter()
@@ -14,6 +14,26 @@ const index = () => {
   const [showOptions, setShowOptions] = useState(false)
   const [rotation] = useState(new Animated.Value(0))
   const [fadeAnim] = useState(new Animated.Value(0))
+  const [userId, setUserId] = useState(null)
+
+  useEffect(() => {
+    checkAuthenticatedUser()
+  }, [])
+
+  const checkAuthenticatedUser = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken')
+      if (token) {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]))
+        const userId = decodedToken.userId
+        setUserId(userId)
+      } else {
+        router.replace('/login')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const toggleOptions = () => {
     setShowOptions(!showOptions)
@@ -41,9 +61,10 @@ const index = () => {
     outputRange: ['0deg', '180deg']
   })
 
-  const fetchTaskData = async () => {
+  const fetchUserTaskData = async () => {
     try {
-      const response = await axios.get('http://192.168.30.174:3000/todos/count')
+      if (!userId) return
+      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos/count`)
       const { totalCompletedTodos, totalPendingTodos } = response.data
       setCompletedTasks(totalCompletedTodos)
       setPendingTasks(totalPendingTodos)
@@ -53,13 +74,15 @@ const index = () => {
   }
 
   useEffect(() => {
-    fetchTaskData()
-    const interval = setInterval(fetchTaskData, 3000)
-    return () => clearInterval(interval)
-  }, [])
+    if (userId) {
+      fetchUserTaskData()
+      const interval = setInterval(fetchUserTaskData, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [userId])
 
-  console.log('comp', completedTasks)
-  console.log('pending', pendingTasks)
+  console.log('completados:', completedTasks)
+  console.log('pendientes:', pendingTasks)
 
   const handleLogout = async () => {
     try {
@@ -90,7 +113,7 @@ const index = () => {
       </View>
 
       <View style={{ marginVertical: 12 }}>
-        <Text style={{ fontWeight: 'bold' }}>Resumen de estadísticas</Text>
+        <Text style={{ fontWeight: 'bold' }}>Resumen de tus estadísticas</Text>
         <View
           style={{
             flexDirection: 'row',
@@ -111,11 +134,11 @@ const index = () => {
             }}
           >
             <Text
-              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color:'white' }}
+              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
             >
               {pendingTasks}
             </Text>
-            <Text style={{ marginTop: 4, fontWeight: '500', color:'white' }}>tareas por hacer</Text>
+            <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas por hacer</Text>
           </View>
           <View
             style={{
@@ -128,11 +151,11 @@ const index = () => {
             }}
           >
             <Text
-              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color:'white' }}
+              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
             >
               {completedTasks}
             </Text>
-            <Text style={{ marginTop: 4, fontWeight: '500', color:'white' }}>tareas completadas</Text>
+            <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas completadas</Text>
           </View>
         </View>
       </View>
@@ -184,10 +207,10 @@ const index = () => {
         {showOptions && (
           <View style={{ backgroundColor: 'white', padding: 15, borderRadius: 5, elevation: 5 }}>
             <Pressable onPress={() => { }}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight:'400' }}>Personalizar perfil</Text>
+              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Personalizar perfil</Text>
             </Pressable>
             <Pressable onPress={() => { }}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight:'400' }}>Cambiar a modo oscuro</Text>
+              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar a modo oscuro</Text>
             </Pressable>
             <Pressable onPress={handleLogout}>
               <Text style={{ fontSize: 16, fontWeight: '900', color: '#ce6464' }}>Cerrar sesión</Text>
