@@ -16,16 +16,17 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 - Node.js y npm instalados en tu máquina local.
 
 ## Pasos de instalación
-1. Clona el repositorio desde GitHub y navega al directorio del proyecto:
+### 1. Clona el repositorio desde GitHub y navega al directorio del proyecto:
 - > git clone https://github.com/ExceptionPK/TasksAndAppointments.git
 - > cd TasksAndAppointments
 
-
-2. Realiza una instalación de dependencias en la carpeta raíz y la carpeta api del proyecto:
+<br />
+### 2. Realiza una instalación de dependencias en la carpeta raíz y la carpeta api del proyecto:
 - > npm install
 - > cd api > npm install
 
-3. Al ejecutar `npx expo start`, reemplazar la IP en las solicitudes Axios por la generada en tu máquina en los siguientes archivos:
+<br />
+### 3. Al ejecutar `npx expo start`, reemplazar la IP en las solicitudes Axios por la generada en tu máquina en los siguientes archivos:
 - app/(authenticate)/login.js
 - app/(authenticate)/register.js
 - app/(tabs)/calendar/index.js
