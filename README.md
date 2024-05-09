@@ -12,10 +12,6 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 - **Perfil:** Los usuarios pueden ver una gráfica con tareas completadas y pendientes totales, sistema de logros por tareas hechas, posibilidad de cambiar foto de perfil y cierre de sesión
 
 # Instalación
-## Requisitos previos
-- Node.js y npm instalados en tu máquina local.
-
-## Pasos de instalación
 ### 1. Clona el repositorio desde GitHub y navega al directorio del proyecto:
 - > git clone https://github.com/ExceptionPK/TasksAndAppointments.git
 - > cd TasksAndAppointments
