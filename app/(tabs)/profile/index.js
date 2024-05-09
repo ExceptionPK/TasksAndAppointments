@@ -5,12 +5,12 @@ import { LineChart } from 'react-native-chart-kit'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import profileImage from '../profile/profile-image.jpg'
 import * as ImagePicker from 'expo-image-picker'
 
-
-const index = () => {
+const Index = () => {
   const router = useRouter()
   const [completedTasks, setCompletedTasks] = useState(0)
   const [pendingTasks, setPendingTasks] = useState(0)
@@ -19,12 +19,22 @@ const index = () => {
   const [fadeAnim] = useState(new Animated.Value(0))
   const [userId, setUserId] = useState(null)
   const [selectedImageUri, setSelectedImageUri] = useState(null)
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false)
+  const [achievementCount, setAchievementCount] = useState(0)
+
+  const [achievements, setAchievements] = useState([
+    { achieved: false, color: '#b1c3f1', text: '5 tareas', textColor: '#cf9258', medalColor: '#cf9258' },
+    { achieved: false, color: '#b1c3f1', text: '10 tareas', textColor: '#BEBEBE', medalColor: '#BEBEBE' },
+    { achieved: false, color: '#b1c3f1', text: '15 tareas', textColor: '#FFD700', medalColor: '#FFD700' },
+    { achieved: false, color: '#b1c3f1', text: '20 tareas', textColor: '#b4d1d7', medalColor: '#b4d1d7' },
+    { achieved: false, color: '#b1c3f1', text: '25 tareas', textColor: '#9cd8e6', medalColor: '#9cd8e6' },
+    { achieved: false, color: '#b1c3f1', text: '30 tareas', textColor: '#64d7d7', medalColor: '#64d7d7' }
+  ])
+
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
+    setDarkMode(!darkMode)
+  }
 
   useEffect(() => {
     checkAuthenticatedUser()
@@ -84,6 +94,20 @@ const index = () => {
       const { totalCompletedTodos, totalPendingTodos } = response.data
       setCompletedTasks(totalCompletedTodos)
       setPendingTasks(totalPendingTodos)
+
+      const tasksNeededForAchievement = 5
+      const achievedCount = Math.floor(totalCompletedTodos / tasksNeededForAchievement)
+      setAchievementCount(achievedCount)
+
+      const updatedAchievements = achievements.map((achievement, index) => {
+        if (index < achievedCount) {
+          return { ...achievement, achieved: true }
+        } else {
+          return achievement
+        }
+      })
+      setAchievements(updatedAchievements)
+      setAchievements(updatedAchievements)
     } catch (error) {
       console.log('error', error)
     }
@@ -96,9 +120,6 @@ const index = () => {
       return () => clearInterval(interval)
     }
   }, [userId])
-
-  console.log('completados:', completedTasks)
-  console.log('pendientes:', pendingTasks)
 
   const handleLogout = async () => {
     try {
@@ -122,8 +143,6 @@ const index = () => {
       await saveSelectedImageUriToDatabase(pickerResult.assets[0].uri)
     }
   }
-
-
 
   const retrieveSelectedImageUri = async () => {
     try {
@@ -164,7 +183,7 @@ const index = () => {
       </View>
 
       <View style={{ marginVertical: 12 }}>
-        <Text style={{ fontWeight: 'bold' }}>Resumen de tus estadísticas</Text>
+        <Text style={{ fontWeight: 'bold', marginTop: 5 }}>Resumen de tus estadísticas</Text>
         <View
           style={{
             flexDirection: 'row',
@@ -230,7 +249,7 @@ const index = () => {
           backgroundColor: '#aaa3e3',
           backgroundGradientFrom: '#a3b1e3',
           backgroundGradientTo: '#667ac2',
-          decimalPlaces: 2,
+          decimalPlaces: 0,
           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           style: {
@@ -248,6 +267,38 @@ const index = () => {
         }}
       />
 
+      <Text style={{ fontWeight: 'bold', marginTop: 20 }}>Logros conseguidos</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
+        {achievements.map((achievement, index) => (
+          <Pressable
+            key={index}
+            style={{
+              width: '31%',
+              aspectRatio: 1,
+              backgroundColor: achievement.achieved ? '#FFF' : '#b1c3f1',
+              padding: 10,
+              borderRadius: 8,
+              marginVertical: 5,
+              marginHorizontal: '1%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: achievement.achieved ? 2 : 0,
+              borderColor: achievement.achieved ? '#b1c3f1' : 'transparent',
+            }}
+          >
+            {achievement.achieved ? (
+              <>
+                <Ionicons name="medal-outline" size={24} color={achievement.medalColor} />
+                <Text style={{ fontWeight: 'bold', color: achievement.textColor }}>{achievement.text}</Text>
+              </>
+            ) : (
+              <AntDesign name='questioncircleo' size={24} color='#FFFFFF' />
+            )}
+          </Pressable>
+        ))}
+      </View>
+
+
       <Pressable onPress={toggleOptions} style={{ position: 'absolute', top: 18, right: 15 }}>
         <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Ionicons name='settings-outline' size={24} color='black' />
@@ -260,7 +311,7 @@ const index = () => {
             <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Personalizar perfil</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.6} onPress={() => { }}>
+            <TouchableOpacity activeOpacity={0.6} onPress={toggleDarkMode}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar a modo oscuro</Text>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.6} onPress={handleLogout}>
@@ -274,6 +325,6 @@ const index = () => {
   )
 }
 
-export default index
+export default Index
 
 const styles = StyleSheet.create({})
