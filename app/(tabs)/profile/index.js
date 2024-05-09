@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated } from 'react-native'
+import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { LineChart } from 'react-native-chart-kit'
@@ -6,6 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
+import profileImage from '../profile/profile-image.jpg'
+import * as ImagePicker from 'expo-image-picker'
+
 
 const index = () => {
   const router = useRouter()
@@ -15,10 +18,23 @@ const index = () => {
   const [rotation] = useState(new Animated.Value(0))
   const [fadeAnim] = useState(new Animated.Value(0))
   const [userId, setUserId] = useState(null)
+  const [selectedImageUri, setSelectedImageUri] = useState(null)
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
 
   useEffect(() => {
     checkAuthenticatedUser()
   }, [])
+
+  useEffect(() => {
+    if (userId) {
+      retrieveSelectedImageUri()
+    }
+  }, [userId])
 
   const checkAuthenticatedUser = async () => {
     try {
@@ -93,14 +109,49 @@ const index = () => {
     }
   }
 
+  const selectImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (permissionResult.granted === false) {
+      alert('Necesitas dar permisos para seleccionar imagenes')
+      return
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync()
+    if (!pickerResult.cancelled && pickerResult.assets && pickerResult.assets.length > 0 && pickerResult.assets[0] !== null) {
+      setSelectedImageUri(pickerResult.assets[0].uri)
+      await saveSelectedImageUriToDatabase(pickerResult.assets[0].uri)
+    }
+  }
+
+
+
+  const retrieveSelectedImageUri = async () => {
+    try {
+      const uri = await AsyncStorage.getItem(`selectedImageUri_${userId}`)
+      if (uri !== null) {
+        setSelectedImageUri(uri)
+      } else {
+        setSelectedImageUri(require('../profile/profile-image.jpg'))
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const saveSelectedImageUriToDatabase = async (uri) => {
+    try {
+      await AsyncStorage.setItem(`selectedImageUri_${userId}`, uri)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   return (
     <View style={{ padding: 10, flex: 1, backgroundColor: 'white' }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Image
           style={{ width: 60, height: 60, borderRadius: 30 }}
-          source={{
-            uri: 'https://i.pinimg.com/originals/d8/7c/fb/d87cfb5fd74a981039da6c8803c23d67.jpg',
-          }}
+          source={selectedImageUri && typeof selectedImageUri === 'string' ? { uri: selectedImageUri } : profileImage}
         />
         <View>
           <Text style={{ fontSize: 16, fontWeight: '600' }}>
@@ -206,15 +257,15 @@ const index = () => {
       <Animated.View style={{ opacity: fadeAnim, position: 'absolute', top: 50, right: 10 }}>
         {showOptions && (
           <View style={{ backgroundColor: 'white', padding: 15, borderRadius: 5, elevation: 5 }}>
-            <Pressable onPress={() => { }}>
+            <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Personalizar perfil</Text>
-            </Pressable>
-            <Pressable onPress={() => { }}>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.6} onPress={() => { }}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar a modo oscuro</Text>
-            </Pressable>
-            <Pressable onPress={handleLogout}>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.6} onPress={handleLogout}>
               <Text style={{ fontSize: 16, fontWeight: '900', color: '#ce6464' }}>Cerrar sesión</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         )}
       </Animated.View>
