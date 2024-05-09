@@ -29,6 +29,9 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 - app/(tabs)/home/index.js
 - app/(tabs)/profile/index.js
 
+### Ejemplo
+![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/2.PNG)
+![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/1.PNG)
 
 # Autor
 Pablo Kuzmin Mashkantsev
