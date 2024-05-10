@@ -34,4 +34,4 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 ![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/1.PNG)
 
 # Autor
-Pablo Kuzmin Mashkantsev
+**Pablo Kuzmin Mashkantsev**
