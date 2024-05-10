@@ -21,7 +21,7 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 - > npm install
 - > cd api > npm install
 
-### 3. Ejecutar los servicios en la carpeta raíz del proyecto y en la carpeta api:
+### 3. Ejecutar los servicios en la carpeta raíz del proyecto y en la carpeta api del proyecto:
 - > npx expo start
 - > cd api > npm start 
 
