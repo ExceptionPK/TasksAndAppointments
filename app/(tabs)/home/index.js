@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import { SwipeListView } from 'react-native-swipe-list-view'
-import { SimpleLineIcons } from '@expo/vector-icons';
+import { SimpleLineIcons } from '@expo/vector-icons'
 LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 
 const index = () => {
@@ -29,6 +29,8 @@ const index = () => {
   const [taskFlags, setTaskFlags] = useState({})
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [userId, setUserId] = useState(null)
+  const [completedCollapsed, setCompletedCollapsed] = useState(false)
+  const [pendingCollapsed, setPendingCollapsed] = useState(false)
 
   const suggestions = [
     { id: '0', todo: 'Hacer ejercicio' },
@@ -41,7 +43,53 @@ const index = () => {
 
   useEffect(() => {
     checkAuthenticatedUser()
+    retrieveCompletedCollapsedState()
+    retrievePendingCollapsedState()
   }, [])
+
+  useEffect(() => {
+    if (userId) {
+      getUserTodos()
+    }
+  }, [userId, marked, category])
+
+  useEffect(() => {
+    if (!isModalVisible) {
+      loadTaskFlags()
+    }
+  }, [isModalVisible])
+
+  const toggleCompletedCollapse = () => {
+    setCompletedCollapsed(!completedCollapsed)
+    AsyncStorage.setItem('completedCollapsed', JSON.stringify(!completedCollapsed))
+  }
+
+  const retrieveCompletedCollapsedState = async () => {
+    try {
+      const value = await AsyncStorage.getItem('completedCollapsed')
+      if (value !== null) {
+        setCompletedCollapsed(JSON.parse(value))
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const togglePendingCollapse = () => {
+    setPendingCollapsed(!pendingCollapsed)
+    AsyncStorage.setItem('pendingCollapsed', JSON.stringify(!pendingCollapsed))
+  }
+
+  const retrievePendingCollapsedState = async () => {
+    try {
+      const value = await AsyncStorage.getItem('pendingCollapsed')
+      if (value !== null) {
+        setPendingCollapsed(JSON.parse(value))
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
 
   const addTodo = async () => {
     try {
@@ -75,18 +123,6 @@ const index = () => {
       console.log(error)
     }
   }
-
-  useEffect(() => {
-    if (userId) {
-      getUserTodos()
-    }
-  }, [userId, marked, category])
-
-  useEffect(() => {
-    if (!isModalVisible) {
-      loadTaskFlags()
-    }
-  }, [isModalVisible])
 
   const checkAuthenticatedUser = async () => {
     try {
@@ -220,89 +256,93 @@ const index = () => {
               {pendingTodos?.length > 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 }}>
                   <Text style={{ fontWeight: '900' }}>Tareas por hacer | {today}</Text>
-                  <MaterialIcons name='arrow-drop-down' size={24} color='black' />
+                  <TouchableOpacity onPress={togglePendingCollapse}>
+                    <MaterialIcons name={pendingCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='black' />
+                  </TouchableOpacity>
                 </View>
               )}
 
-              <SwipeListView
-                data={pendingTodos}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <TouchableOpacity onPress={() => markTodoAsCompleted(item?._id)} activeOpacity={0.5}>
-                        <Entypo name='circle' size={18} color='black' />
-                      </TouchableOpacity>
-                      <Text style={{ flex: 1, fontWeight: '500' }}>{item?.title}</Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          router?.push({
-                            pathname: '/home/info',
-                            params: {
-                              id: item._id,
-                              title: item?.title,
-                              category: item?.category,
-                              createdAt: item?.createdAt,
-                              dueDate: item?.dueDate,
-                            },
-                          })
-                        }}
-                      >
-                        <SimpleLineIcons name="pencil" size={23} color="black" style={{ marginRight: 3 }} />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => toggleFlag(item._id)} activeOpacity={0.3}>
-                        <Ionicons
-                          name={taskFlags[item._id] ? 'flag' : 'flag-outline'}
-                          size={25}
-                          color={taskFlags[item._id] ? '#ce6464' : 'black'}
-                        />
+              {!pendingCollapsed && (
+                <SwipeListView
+                  data={pendingTodos}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item }) => (
+                    <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <TouchableOpacity onPress={() => markTodoAsCompleted(item?._id)} activeOpacity={0.5}>
+                          <Entypo name='circle' size={18} color='black' />
+                        </TouchableOpacity>
+                        <Text style={{ flex: 1, fontWeight: '500' }}>{item?.title}</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            router?.push({
+                              pathname: '/home/info',
+                              params: {
+                                id: item._id,
+                                title: item?.title,
+                                category: item?.category,
+                                createdAt: item?.createdAt,
+                                dueDate: item?.dueDate,
+                              },
+                            })
+                          }}
+                        >
+                          <SimpleLineIcons name='pencil' size={23} color='black' style={{ marginRight: 3 }} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => toggleFlag(item._id)} activeOpacity={0.3}>
+                          <Ionicons
+                            name={taskFlags[item._id] ? 'flag' : 'flag-outline'}
+                            size={25}
+                            color={taskFlags[item._id] ? '#ce6464' : 'black'}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </Pressable>
+                  )}
+                  renderHiddenItem={({ item }) => (
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                      <TouchableOpacity onPress={() => deleteTodo(item._id)} style={{ backgroundColor: '#ce6464', borderRadius: 7, justifyContent: 'center', alignItems: 'center', padding: 10 }}>
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Eliminar</Text>
                       </TouchableOpacity>
                     </View>
-                  </Pressable>
-                )}
-                renderHiddenItem={({ item }) => (
-                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <TouchableOpacity onPress={() => deleteTodo(item._id)} style={{ backgroundColor: '#ce6464', borderRadius: 7, justifyContent: 'center', alignItems: 'center', padding: 10 }}>
-                      <Text style={{ color: 'white', fontWeight: 'bold' }}>Eliminar</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                leftOpenValue={0}
-                rightOpenValue={-75}
-              />
-
+                  )}
+                  leftOpenValue={0}
+                  rightOpenValue={-75}
+                />
+              )}
 
               {completedTodos?.length > 0 && (
                 <View style={{ marginTop: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginVertical: 5 }}>
                     <Text style={{ fontWeight: '900', marginRight: 'auto' }}>Tareas completadas | {today}</Text>
-                    <MaterialIcons name='arrow-drop-down' size={24} color='black' />
+                    <TouchableOpacity onPress={toggleCompletedCollapse}>
+                      <MaterialIcons name={completedCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='black' />
+                    </TouchableOpacity>
                   </View>
 
-                  <SwipeListView
-                    data={completedTodos}
-                    keyExtractor={(item) => item._id}
-                    renderItem={({ item }) => (
-                      <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                          <FontAwesome name='circle' size={18} color='gray' />
-                          <Text style={{ flex: 1, textDecorationLine: 'line-through', color: 'gray', fontWeight: '500' }}>{item?.title}</Text>
+                  {!completedCollapsed && (
+                    <SwipeListView
+                      data={completedTodos}
+                      keyExtractor={(item) => item._id}
+                      renderItem={({ item }) => (
+                        <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                            <FontAwesome name='circle' size={18} color='gray' />
+                            <Text style={{ flex: 1, textDecorationLine: 'line-through', color: 'gray', fontWeight: '500' }}>{item?.title}</Text>
+                          </View>
+                        </Pressable>
+                      )}
+                      renderHiddenItem={({ item }) => (
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+                          <TouchableOpacity onPress={() => deleteTodo(item._id)} style={{ backgroundColor: '#ce6464', borderRadius: 7, justifyContent: 'center', alignItems: 'center', padding: 10 }}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Eliminar</Text>
+                          </TouchableOpacity>
                         </View>
-                      </Pressable>
-                    )}
-                    renderHiddenItem={({ item }) => (
-                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-                        <TouchableOpacity onPress={() => deleteTodo(item._id)} style={{ backgroundColor: '#ce6464', borderRadius: 7, justifyContent: 'center', alignItems: 'center', padding: 10 }}>
-                          <Text style={{ color: 'white', fontWeight: 'bold' }}>Eliminar</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                    leftOpenValue={0}
-                    rightOpenValue={-75}
-                  />
-
+                      )}
+                      leftOpenValue={0}
+                      rightOpenValue={-75}
+                    />
+                  )}
                 </View>
               )}
 
@@ -313,7 +353,7 @@ const index = () => {
                 style={{ width: 280, height: 280, left: 10, resizeMode: 'contain' }}
                 source={{ uri: 'https://www.pngall.com/wp-content/uploads/8/Task-List.png' }}
               />
-              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700', textAlign: 'center' }}>No hay tareas disponibles en esta categoría. ¡Añade una tarea!</Text>
+              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700' }}>¡No tienes tareas por hacer!</Text>
             </View>
           )}
         </View>
