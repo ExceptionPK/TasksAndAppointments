@@ -307,6 +307,7 @@ const index = () => {
         modalAnimation={new SlideAnimation({ slideFrom: 'bottom' })}
         visible={isModalVisible}
         onTouchOutside={() => setModalVisible(false)}
+        onSwipeOut={() => setModalVisible(false)}
       >
         <ModalContent style={{ width: '100%', height: 280 }}>
           <View style={{ marginVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
