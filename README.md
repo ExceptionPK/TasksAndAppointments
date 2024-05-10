@@ -21,8 +21,11 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 - > npm install
 - > cd api > npm install
 
+### 3. Ejecutar los servicios en la carpeta raíz del proyecto y en la carpeta api:
+- > npx expo start
+- > cd api > npm start 
 
-### 3. Al ejecutar `npx expo start`, reemplazar la IP en las solicitudes Axios por la generada en tu máquina en los siguientes archivos:
+### 4. Al ejecutar `npx expo start`, reemplazar la IP en las solicitudes Axios por la generada en tu máquina en los siguientes archivos:
 - app/(authenticate)/login.js
 - app/(authenticate)/register.js
 - app/(tabs)/calendar/index.js
