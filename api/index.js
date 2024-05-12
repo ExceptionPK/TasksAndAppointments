@@ -1,22 +1,26 @@
-const express = require("express")
-const bodyParser = require("body-parser")
-const mongoose = require("mongoose")
-const crypto = require("crypto")
-const sgMail = require('@sendgrid/mail')
+const express = require("express") // Importación del framework Express
+const bodyParser = require("body-parser") // Middleware para parsear datos del cuerpo de las solicitudes HTTP
+const mongoose = require("mongoose") // ODM para MongoDB
+const crypto = require("crypto") // Librería para operaciones criptográficas
+const sgMail = require('@sendgrid/mail') // Cliente para enviar correos electrónicos usando SendGrid
 
-sgMail.setApiKey("API KEY")
 
-const app = express()
-const port = 3000
+sgMail.setApiKey("API KEY") // Configuración de la API Key de SendGrid para enviar correos electrónicos
+const app = express() // Creación de la aplicación Express
+const port = 3000 // Definición del puerto en el que se ejecutará el servidor
+
+// Middleware para permitir solicitudes de recursos cruzados
 const cors = require("cors")
 app.use(cors())
 
+// Middleware para parsear datos del cuerpo de las solicitudes en formato JSON
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-const jwt = require("jsonwebtoken")
-const moment = require("moment")
+const jwt = require("jsonwebtoken") // Librería para crear y verificar tokens de autenticación JWT
+const moment = require("moment") // Librería para manipular y formatear fechas y horas
 
+// Conexión a la base de datos MongoDB usando Mongoose
 mongoose.connect("mongodb+srv://pv:pv@cluster0.dtbyiyx.mongodb.net/").then(() => {
     console.log("Conectado a MongoDB")
 }).catch((error) => {
@@ -30,21 +34,25 @@ app.listen(port, () => {
 const User = require("./models/user")
 const Todo = require("./models/todo")
 
+// Manejar la solicitud de registro de un nuevo usuario
 app.post("/register", async (req, res) => {
     try {
         const { name, email, password } = req.body
 
+        // Verificar si ya existe un usuario con el mismo correo electrónico
         const existingUser = await User.findOne({ email })
         if (existingUser) {
             console.log("Este email ya existe")
         }
 
+        // Crear un nuevo usuario con los datos proporcionados
         const newUser = new User({
             name,
             email,
             password
         })
 
+        // Guardar el nuevo usuario en la base de datos
         await newUser.save()
         res.status(202).json({ message: "Usuario registrado" })
     } catch (error) {
@@ -53,25 +61,32 @@ app.post("/register", async (req, res) => {
     }
 })
 
+// Función para generar una clave secreta aleatoria
 const generateSecretKey = () => {
+    // Generar una clave aleatoria utilizando el módulo crypto y convertirla a formato hexadecimal
     const secretKey = crypto.randomBytes(32).toString("hex")
     return secretKey
 }
 
 const secretKey = generateSecretKey()
 
+// Manejar la solicitud de inicio de sesión
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body
 
+        // Buscar el usuario en la base de datos utilizando el correo electrónico
         const user = await User.findOne({ email })
         if (!user) {
             return res.status(401).json({ message: "El correo es incorrecto." })
         }
 
+        // Verificar si la contraseña proporcionada coincide con la contraseña almacenada en la base de datos
         if (user.password !== password) {
             return res.status(401).json({ message: "La contraseña es incorrecta." })
         }
+
+        // Generar un token de autenticación utilizando el ID del usuario y la clave
         const token = jwt.sign({ userId: user._id, }, secretKey)
 
         res.status(200).json({ token })
@@ -81,17 +96,20 @@ app.post("/login", async (req, res) => {
     }
 })
 
+// Manejar la solicitud de creación de una nueva tarea para un usuario específico
 app.post("/todos/:userId", async (req, res) => {
     try {
         const userId = req.params.userId
         const { title, category } = req.body
 
+        // Crear una nueva tarea con el título, la categoría y la fecha de expiracion actuales
         const newTodo = new Todo({
             title,
             category,
             dueDate: moment().format("YYYY-MM-DD")
         })
 
+        // Guardar la nueva tarea en la base de datos
         await newTodo.save()
 
         const user = await User.findById(userId)
@@ -99,6 +117,7 @@ app.post("/todos/:userId", async (req, res) => {
             res.status(404).json({ error: "El usuario no se ha encontrado." })
         }
 
+        // Añadir el ID de la nueva tarea a la lista de tareas del usuario
         user?.todos.push(newTodo._id)
         await user.save()
 
@@ -108,9 +127,10 @@ app.post("/todos/:userId", async (req, res) => {
     }
 })
 
+// Recoger todas las tareas de un usuario específico
 app.get("/users/:userId/todos", async (req, res) => {
     try {
-        const userId = req.params.userId
+        const userId = req.params.userId // Obtener el ID de usuario de los parámetros de la solicitud
 
         const user = await User.findById(userId).populate("todos")
         if (!user) {
@@ -123,13 +143,14 @@ app.get("/users/:userId/todos", async (req, res) => {
     }
 })
 
+// Marcar una tarea como completada
 app.patch("/todos/:todoId/complete", async (req, res) => {
     try {
-        const todoId = req.params.todoId
+        const todoId = req.params.todoId // Obtener el ID de la tarea de los parámetros de la solicitud
 
         const updatedTodo = await Todo.findByIdAndUpdate(todoId, {
             status: "completed"
-        }, { new: true }
+        }, { new: true } // Devolver los datos actualizados
         )
 
         if (!updatedTodo) {
@@ -142,19 +163,22 @@ app.patch("/todos/:todoId/complete", async (req, res) => {
     }
 })
 
+// Obtener las tareas completadas de un usuario en una fecha específica
 app.get("/users/:userId/todos/completed/:date", async (req, res) => {
     try {
-        const userId = req.params.userId
-        const date = req.params.date
+        const userId = req.params.userId // Obtener el ID de usuario de los parámetros de la solicitud
+        const date = req.params.date // Obtener la fecha de los parámetros de la solicitud
 
+        // Buscar al usuario por su ID
         const user = await User.findById(userId)
         if (!user) {
             return res.status(404).json({ error: "El usuario no se ha encontrado." })
         }
 
+        // Buscar las tareas completadas del usuario en la fecha especificada
         const completedTodos = await Todo.find({
-            _id: { $in: user.todos },
-            status: "completed",
+            _id: { $in: user.todos }, // Filtrar por las tareas del usuario
+            status: "completed", // Filtrar por tareas completadas
             createdAt: {
                 $gte: new Date(`${date}T00:00:00.000Z`),
                 $lt: new Date(`${date}T23:59:59.999Z`),
@@ -167,45 +191,51 @@ app.get("/users/:userId/todos/completed/:date", async (req, res) => {
     }
 })
 
-
+// Obtener el número total de tareas completadas y pendientes de un usuario
 app.get("/users/:userId/todos/count", async (req, res) => {
     try {
-      const userId = req.params.userId
+        const userId = req.params.userId // Obtener el ID de usuario de los parámetros de la solicitud
 
-      const user = await User.findById(userId)
+        // Buscar al usuario por su ID
+        const user = await User.findById(userId)
         if (!user) {
             return res.status(404).json({ error: "El usuario no se ha encontrado." })
         }
-  
-      const totalCompletedTodos = await Todo.countDocuments({
-        _id: { $in: user.todos },
-        status: "completed",
-      }).exec()
-  
-      const totalPendingTodos = await Todo.countDocuments({
-        _id: { $in: user.todos },
-        status: "pending",
-      }).exec()
-  
-      res.status(200).json({ totalCompletedTodos, totalPendingTodos })
-    } catch (error) {
-      res.status(500).json({ error: "Error en la conexión." })
-    }
-  })
 
+        // Contar el número de tareas completadas del usuario
+        const totalCompletedTodos = await Todo.countDocuments({
+            _id: { $in: user.todos },
+            status: "completed",
+        }).exec()
+
+        // Contar el número de tareas pendientes del usuario
+        const totalPendingTodos = await Todo.countDocuments({
+            _id: { $in: user.todos },
+            status: "pending",
+        }).exec()
+
+        res.status(200).json({ totalCompletedTodos, totalPendingTodos })
+    } catch (error) {
+        res.status(500).json({ error: "Error en la conexión." })
+    }
+})
+
+// Eliminar una tarea específica
 app.delete("/todos/:todoId", async (req, res) => {
     try {
         const todoId = req.params.todoId
 
+        // Eliminar la tarea de la base de datos
         const deletedTodo = await Todo.findByIdAndDelete(todoId)
         if (!deletedTodo) {
             return res.status(404).json({ error: "La tarea no se ha encontrado." })
         }
 
+        // Buscar al usuario que tiene la tarea y eliminar la referencia de la tarea de su lista de tareas
         const user = await User.findOneAndUpdate(
-            { todos: todoId },
-            { $pull: { todos: todoId } },
-            { new: true }
+            { todos: todoId }, // Buscar al usuario que tiene la tarea en su lista de tareas
+            { $pull: { todos: todoId } }, // Eliminar la referencia de la tarea de la lista de tareas del usuario
+            { new: true } // Devolver los datos actualizados del usuario
         )
 
         if (!user) {
@@ -219,22 +249,26 @@ app.delete("/todos/:todoId", async (req, res) => {
     }
 })
 
+// Ruta para eliminar todas las tareas de un usuario
 app.delete("/todos/delete-all/:userId", async (req, res) => {
     try {
-        const userId = req.params.userId
+        const userId = req.params.userId // Obtener el ID de usuario de los parámetros de la solicitud
 
+        // Buscar al usuario por su ID
         const user = await User.findById(userId)
         if (!user) {
             return res.status(404).json({ error: "El usuario no se ha encontrado." })
         }
 
+        // Eliminar todas las tareas del usuario de la base de datos
         const deletedTodos = await Todo.deleteMany({ _id: { $in: user.todos } })
         if (!deletedTodos) {
             return res.status(404).json({ error: "No se han encontrado tareas para eliminar." })
         }
 
+        // Limpiar la lista de tareas del usuario
         user.todos = []
-        await user.save()
+        await user.save() // Guardar los cambios en el usuario
 
         res.status(200).json({ message: "Todas las tareas han sido eliminadas." })
     } catch (error) {
@@ -243,15 +277,18 @@ app.delete("/todos/delete-all/:userId", async (req, res) => {
     }
 })
 
+// Ruta para enviar un correo electrónico de recuperación de contraseña
 app.post("/forgot-password", async (req, res) => {
     try {
-        const { email } = req.body
+        const { email } = req.body // Obtener el correo electrónico del cuerpo de la solicitud
 
+        // Buscar al usuario por su correo electrónico
         const user = await User.findOne({ email })
         if (!user) {
             return res.status(404).json({ title: "Error de datos", message: "El correo electrónico no está registrado." })
         }
 
+        // Crear el mensaje de correo electrónico para la recuperación de contraseña
         const msg = {
             to: email,
             from: { name: 'no-reply', email: 'saleunomas@gmail.com' },
@@ -295,8 +332,10 @@ app.post("/forgot-password", async (req, res) => {
                 </div>
             `
         }
-
+        
+        // Enviar el correo electrónico utilizando el servicio de SendGrid
         await sgMail.send(msg)
+
         res.status(200).json({ title: "Recuperación de contraseña", message: "Se ha enviado un correo electrónico de recuperación de contraseña." })
     } catch (error) {
         console.log("Error al enviar el correo electrónico de recuperación de contraseña:", error)

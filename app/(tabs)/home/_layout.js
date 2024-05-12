@@ -7,6 +7,7 @@ export default function Layout() {
             <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name='index' />
             </Stack>
+            {/* Componente ModalPortal utilizado para renderizar los modales en la aplicación */}
             <ModalPortal/>
         </>
     )

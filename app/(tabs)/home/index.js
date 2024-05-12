@@ -32,6 +32,7 @@ const index = () => {
   const [completedCollapsed, setCompletedCollapsed] = useState(false)
   const [pendingCollapsed, setPendingCollapsed] = useState(false)
 
+  // Array de sugerencias para autocompletar más rapido las tareas
   const suggestions = [
     { id: '0', todo: 'Hacer ejercicio' },
     { id: '1', todo: 'Comprar tomates' },
@@ -41,29 +42,35 @@ const index = () => {
     { id: '6', todo: 'Realizar documentación' },
   ]
 
+  // Efecto que se ejecuta al cargar el componente para verificar el usuario autenticado 
+  //y recuperar el estado de colapso de las tareas completadas y pendientes
   useEffect(() => {
     checkAuthenticatedUser()
     retrieveCompletedCollapsedState()
     retrievePendingCollapsedState()
   }, [])
 
+  // Efecto que se ejecuta cada vez que cambia el ID de usuario, el estado de marcado o la categoría de las tareas
   useEffect(() => {
     if (userId) {
       getUserTodos()
     }
   }, [userId, marked, category])
 
+  // Efecto que se ejecuta cada vez que cambia el estado de visibilidad del modal
   useEffect(() => {
     if (!isModalVisible) {
       loadTaskFlags()
     }
   }, [isModalVisible])
 
+  // Función para alternar el estado de colapso de las tareas completadas
   const toggleCompletedCollapse = () => {
     setCompletedCollapsed(!completedCollapsed)
     AsyncStorage.setItem('completedCollapsed', JSON.stringify(!completedCollapsed))
   }
 
+  // Función para recuperar el estado de colapso de las tareas completadas del almacenamiento local
   const retrieveCompletedCollapsedState = async () => {
     try {
       const value = await AsyncStorage.getItem('completedCollapsed')
@@ -75,11 +82,13 @@ const index = () => {
     }
   }
 
+  // Función para recuperar el estado de colapso de las tareas pendientes del almacenamiento local
   const togglePendingCollapse = () => {
     setPendingCollapsed(!pendingCollapsed)
     AsyncStorage.setItem('pendingCollapsed', JSON.stringify(!pendingCollapsed))
   }
 
+  // Función para recuperar el estado de colapso de las tareas pendientes del almacenamiento local
   const retrievePendingCollapsedState = async () => {
     try {
       const value = await AsyncStorage.getItem('pendingCollapsed')
@@ -91,9 +100,11 @@ const index = () => {
     }
   }
 
+  // Función para agregar una nueva tarea
   const addTodo = async () => {
     try {
-      if (!todo.trim()) {
+      // Verificar si la tarea está vacía o contiene solo espacios en blanco
+      if (!todo.trim()) { 
         ToastAndroid.show('Por favor, escribe una tarea primero.', ToastAndroid.SHORT)
         return
       }
@@ -103,10 +114,12 @@ const index = () => {
         category: category,
       }
 
-      const response = await axios.post(`http://192.168.30.174:3000/todos/${userId}`, todoData)
+      // Enviar una solicitud para agregar una nueva tarea al servidor
+      const response = await axios.post(`http://192.168.1.60:3000/todos/${userId}`, todoData)
 
       console.log(response.data)
 
+      // Agregar la nueva tarea a la lista de tareas
       const newTodo = response.data.todo
 
       setTodos([...todos, newTodo])
@@ -124,33 +137,39 @@ const index = () => {
     }
   }
 
+  // Función para verificar si el usuario está autenticado
   const checkAuthenticatedUser = async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken')
+      const token = await AsyncStorage.getItem('authToken') // Obtener el token de autenticación del almacenamiento local
       if (token) {
         const decodedToken = JSON.parse(atob(token.split('.')[1]))
         const userId = decodedToken.userId
         setUserId(userId)
       } else {
-        router.replace('/login')
+        router.replace('/login') // Redirigir al usuario a la página de inicio de sesión si no hay token
       }
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para obtener las tareas del usuario
   const getUserTodos = async () => {
     try {
-      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos`)
+      // Obtener las tareas del usuario desde el servidor
+      const response = await axios.get(`http://192.168.1.60:3000/users/${userId}/todos`)
 
-      const allTodos = response.data.todos || []
+      const allTodos = response.data.todos || [] // Obtener todas las tareas del usuario
       setTodos(allTodos)
 
+      // Filtrar las tareas según la categoría seleccionada
       const filteredTodos = category === 'Todas' ? allTodos : allTodos.filter(todo => todo.category === category)
 
+      // Separar las tareas pendientes de las completadas
       const pending = filteredTodos.filter((todo) => todo.status !== 'completed')
       const completed = filteredTodos.filter((todo) => todo.status === 'completed')
 
+      // Establecer las tareas pendientes y completadas en el estado
       setPendingTodos(pending)
       setCompletedTodos(completed)
     } catch (error) {
@@ -158,32 +177,36 @@ const index = () => {
     }
   }
 
+  // Función para marcar una tarea como completada
   const markTodoAsCompleted = async (todoId) => {
     try {
       setMarked(true)
-      const response = await axios.patch(`http://192.168.30.174:3000/todos/${todoId}/complete`)
+      // Enviar una solicitud para marcar la tarea como completada al servidor
+      const response = await axios.patch(`http://192.168.1.60:3000/todos/${todoId}/complete`)
       console.log(response.data)
 
-      await getUserTodos()
+      await getUserTodos() // Actualizar las tareas del usuario después de marcar una como completada
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para eliminar una tarea
   const deleteTodo = async (todoId) => {
     try {
-      const response = await axios.delete(`http://192.168.30.174:3000/todos/${todoId}`)
+      // Enviar una solicitud para eliminar la tarea al servidor
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`)
       console.log(response.data)
-
-      await getUserTodos()
+      await getUserTodos() // Actualizar las tareas del usuario después de eliminar una
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para eliminar todas las tareas del usuario
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/${userId}`)
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/${userId}`)
       console.log(response.data)
       await getUserTodos()
     } catch (error) {
@@ -191,33 +214,38 @@ const index = () => {
     }
   }
 
-  console.log('completed', completedTodos)
-  console.log('pending', pendingTodos)
+  console.log('completados:', completedTodos)
+  console.log('pendientes:', pendingTodos)
 
+  // Función para cambiar el estado de la bandera de una tarea
   const toggleFlag = async (taskId) => {
     try {
+      // Actualizar las banderas de las tareas
       const updatedFlags = { ...taskFlags, [taskId]: !taskFlags[taskId] }
-      setTaskFlags(updatedFlags)
-      await AsyncStorage.setItem(taskId, updatedFlags[taskId] ? 'true' : 'false')
+      setTaskFlags(updatedFlags) // Establecer las banderas actualizadas en el estado
+      await AsyncStorage.setItem(taskId, updatedFlags[taskId] ? 'true' : 'false') // Guardar las banderas en el almacenamiento local
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para cargar las banderas de las tareas almacenadas en el almacenamiento local
   const loadTaskFlags = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys()
       const storedFlags = {}
+      // Recorrer todas las claves y obtener los valores correspondientes
       for (const key of keys) {
         const value = await AsyncStorage.getItem(key)
-        storedFlags[key] = value === 'true'
+        storedFlags[key] = value === 'true' // Almacenar las banderas como booleanos
       }
-      setTaskFlags(storedFlags)
+      setTaskFlags(storedFlags) // Establecer las banderas en el estado
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para manejar el cambio de categoría de las tareas
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory)
   }
@@ -353,7 +381,7 @@ const index = () => {
                 style={{ width: 280, height: 280, left: 10, resizeMode: 'contain' }}
                 source={{ uri: 'https://www.pngall.com/wp-content/uploads/8/Task-List.png' }}
               />
-              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700' }}>¡No tienes tareas por hacer!</Text>
+              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700', textAlign:'center' }}>No tienes tareas por hacer en esta categoría. ¡Añade una tarea!</Text>
             </View>
           )}
         </View>

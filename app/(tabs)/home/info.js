@@ -31,21 +31,25 @@ const Info = () => {
         ).start()
     }
 
+    // Función para manejar el evento de retroceso
     const handleBackPress = () => {
         navigation.goBack()
     }
 
+    // Efecto para cargar el estado del recordatorio y las subtareas al cargar el componente
     useEffect(() => {
         loadReminderState()
         loadSubtasks()
         setCurrentDate(getFormattedDate())
     }, [])
 
+    // Función para obtener la fecha actual formateada
     const getFormattedDate = () => {
         const date = new Date().toLocaleDateString()
         return date
     }
 
+    // Función para alternar el estado del recordatorio
     const toggleReminder = () => {
         if (reminder === 'No') {
             setReminder('Sí')
@@ -57,12 +61,14 @@ const Info = () => {
         }
     }
 
+    // Función para enviar una notificación (solo para Android)
     const sendNotification = () => {
         if (Platform.OS === 'android') {
             ToastAndroid.show('Los recordatorios para esta tarea han sido activados.', ToastAndroid.SHORT)
         }
     }
 
+    // Función para guardar el estado del recordatorio en el almacenamiento local
     const saveReminderState = async (value) => {
         try {
             await AsyncStorage.setItem(`reminderState_${params?.id}`, value)
@@ -71,6 +77,7 @@ const Info = () => {
         }
     }
 
+    // Función para cargar el estado del recordatorio desde el almacenamiento local
     const loadReminderState = async () => {
         try {
             const value = await AsyncStorage.getItem(`reminderState_${params?.id}`)
@@ -82,10 +89,12 @@ const Info = () => {
         }
     }
 
+    // Función para manejar el cambio en el texto de la subtarea
     const handleSubtaskChange = (text) => {
         setSubtask(text)
     }
 
+    // Función para agregar una subtarea
     const addSubtask = async () => {
         if (subtask.trim() !== '') {
             try {
@@ -99,6 +108,7 @@ const Info = () => {
         }
     }
 
+    // Función para cargar las subtareas desde el almacenamiento local
     const loadSubtasks = async () => {
         try {
             const subtasks = await AsyncStorage.getItem(`subtasksList_${params?.id}`)
@@ -110,6 +120,7 @@ const Info = () => {
         }
     }
 
+    // Función para alternar el estado del campo de agregar subtarea
     const toggleAddSubtaskField = () => {
         setIsAddingSubtask((prev) => !prev)
         if (isAddingSubtask && subtask.trim() !== '') {
@@ -117,6 +128,7 @@ const Info = () => {
         }
     }
 
+    // Función para eliminar una subtarea de la lista
     const deleteSubtask = async (index) => {
         try {
             const updatedSubtasksList = [...subtasksList]

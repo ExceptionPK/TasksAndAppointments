@@ -22,6 +22,8 @@ const Index = () => {
   const [darkMode, setDarkMode] = useState(false)
   const [achievementCount, setAchievementCount] = useState(0)
 
+
+  //  Array de los logros
   const [achievements, setAchievements] = useState([
     { achieved: false, color: '#b1c3f1', text: '5 tareas', textColor: '#cf9258', medalColor: '#cf9258' },
     { achieved: false, color: '#b1c3f1', text: '10 tareas', textColor: '#BEBEBE', medalColor: '#BEBEBE' },
@@ -32,28 +34,36 @@ const Index = () => {
   ])
 
 
+  // Función para alternar entre modo oscuro y claro
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
   }
 
+  // Efecto para verificar si hay un usuario autenticado al cargar el componente
   useEffect(() => {
     checkAuthenticatedUser()
   }, [])
 
+  // Efecto para recuperar la URI de la imagen seleccionada cada vez que cambia el usuario autenticado
   useEffect(() => {
     if (userId) {
       retrieveSelectedImageUri()
     }
   }, [userId])
 
+  // Función para verificar si hay un usuario autenticado y recuperar su ID
   const checkAuthenticatedUser = async () => {
     try {
+      // Obtener el token de autenticación del almacenamiento local
       const token = await AsyncStorage.getItem('authToken')
       if (token) {
+        // Decodificar el token para obtener el ID del usuario
         const decodedToken = JSON.parse(atob(token.split('.')[1]))
         const userId = decodedToken.userId
+        // Establecer el ID del usuario en el estado
         setUserId(userId)
       } else {
+        // Si no hay token de autenticación, redirigir al usuario a la página de inicio de sesión
         router.replace('/login')
       }
     } catch (error) {
@@ -61,6 +71,7 @@ const Index = () => {
     }
   }
 
+  // Función para alternar la visibilidad de las opciones y animar su aparición
   const toggleOptions = () => {
     setShowOptions(!showOptions)
     Animated.timing(
@@ -87,18 +98,23 @@ const Index = () => {
     outputRange: ['0deg', '180deg']
   })
 
+  // Función para obtener los datos de las tareas del usuario
   const fetchUserTaskData = async () => {
     try {
-      if (!userId) return
-      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos/count`)
+      if (!userId) return // Si no hay un ID de usuario, salir de la función
+
+      // Realizar una solicitud HTTP para obtener los datos de las tareas del usuario
+      const response = await axios.get(`http://192.168.1.60:3000/users/${userId}/todos/count`)
       const { totalCompletedTodos, totalPendingTodos } = response.data
       setCompletedTasks(totalCompletedTodos)
       setPendingTasks(totalPendingTodos)
 
+      // Calcular el número de logros alcanzados
       const tasksNeededForAchievement = 5
       const achievedCount = Math.floor(totalCompletedTodos / tasksNeededForAchievement)
       setAchievementCount(achievedCount)
 
+      // Actualizar el estado de los logros para que se muestren en pantalla al completarlos
       const updatedAchievements = achievements.map((achievement, index) => {
         if (index < achievedCount) {
           return { ...achievement, achieved: true }
@@ -113,6 +129,7 @@ const Index = () => {
     }
   }
 
+  // Efecto para actualizar los datos de las tareas del usuario y mantenerlos actualizados cada 3 segundos
   useEffect(() => {
     if (userId) {
       fetchUserTaskData()
@@ -121,45 +138,50 @@ const Index = () => {
     }
   }, [userId])
 
+  // Función para manejar el cierre de sesión
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('authToken')
+      await AsyncStorage.removeItem('authToken') // Eliminar el token de autenticación del almacenamiento local
       router.replace('/login')
     } catch (error) {
       console.log(error)
     }
   }
 
+  // Función para seleccionar una imagen
   const selectImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync() // Solicitar permisos a la biblioteca de medios del dispositivo
     if (permissionResult.granted === false) {
       alert('Necesitas dar permisos para seleccionar imagenes')
       return
     }
 
+    // Ejecutar la biblioteca de imágenes para que el usuario seleccione una imagen
     const pickerResult = await ImagePicker.launchImageLibraryAsync()
     if (!pickerResult.cancelled && pickerResult.assets && pickerResult.assets.length > 0 && pickerResult.assets[0] !== null) {
+      // Si se selecciona una imagen y no se cancela la selección
       setSelectedImageUri(pickerResult.assets[0].uri)
       await saveSelectedImageUriToDatabase(pickerResult.assets[0].uri)
     }
   }
 
+  // Función para recuperar la URI de la imagen seleccionada del almacenamiento local
   const retrieveSelectedImageUri = async () => {
     try {
-      const uri = await AsyncStorage.getItem(`selectedImageUri_${userId}`)
+      const uri = await AsyncStorage.getItem(`selectedImageUri_${userId}`) // Obtener la URI de la imagen seleccionada
       if (uri !== null) {
         setSelectedImageUri(uri)
       } else {
-        setSelectedImageUri(require('../profile/profile-image.jpg'))
+        setSelectedImageUri(require('../profile/profile-image.jpg')) // Establecer una imagen predeterminada como URI de la imagen seleccionada
       }
     } catch (error) {
       console.error('Error:', error)
     }
   }
-
+  // Función para guardar la URI de la imagen seleccionada en la base de datos local
   const saveSelectedImageUriToDatabase = async (uri) => {
     try {
-      await AsyncStorage.setItem(`selectedImageUri_${userId}`, uri)
+      await AsyncStorage.setItem(`selectedImageUri_${userId}`, uri) // Guardar la URI de la imagen seleccionada en el almacenamiento local
     } catch (error) {
       console.error('Error:', error)
     }

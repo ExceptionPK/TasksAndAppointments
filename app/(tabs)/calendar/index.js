@@ -15,17 +15,19 @@ const Index = () => {
   const [todos, setTodos] = useState([])
   const [userId, setUserId] = useState(null)
 
+  // Efecto para verificar si hay un usuario autenticado al cargar el componente
   useEffect(() => {
-    checkAuthenticatedUser()
+    checkAuthenticatedUser() // Llamar a la función para verificar el usuario autenticado
   }, [])
 
+  // Función asincrónica para verificar si hay un usuario autenticado
   const checkAuthenticatedUser = async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken')
+      const token = await AsyncStorage.getItem('authToken') // Obtener el token de autenticación del almacenamiento local
       if (token) {
-        const decodedToken = JSON.parse(atob(token.split('.')[1]))
-        const userId = decodedToken.userId
-        setUserId(userId)
+        const decodedToken = JSON.parse(atob(token.split('.')[1])) // Decodificar el token para obtener el ID del usuario
+        const userId = decodedToken.userId // Extraer el ID del usuario del token decodificado
+        setUserId(userId) // Establecer el ID del usuario en el estado
       } else {
         router.replace('/login')
       }
@@ -34,6 +36,7 @@ const Index = () => {
     }
   }
 
+  // Efecto para obtener las tareas completadas del usuario y mantenerlas actualizadas cada 3 segundos
   useEffect(() => {
     if (userId) {
       fetchCompletedTodos()
@@ -42,22 +45,26 @@ const Index = () => {
     }
   }, [selectedDate, userId])
 
+  // Función para obtener las tareas completadas del usuario
   const fetchCompletedTodos = async () => {
     try {
       if (!userId) return
+      // Realizar una solicitud HTTP para obtener las tareas completadas del usuario para la fecha seleccionada
       const response = await axios.get(
-        `http://192.168.30.174:3000/users/${userId}/todos/completed/${selectedDate}`
+        `http://192.168.1.60:3000/users/${userId}/todos/completed/${selectedDate}`
       )
 
+      // Extraer las tareas completadas de la respuesta
       const completedTodos = response.data.completedTodos || []
-      setTodos(completedTodos)
+      setTodos(completedTodos) // Establecer las tareas completadas en el estado
     } catch (error) {
       console.log('error', error)
     }
   }
 
+  // Función para manejar la selección de día en el calendario
   const handleDayPress = (day) => {
-    setSelectedDate(day.dateString)
+    setSelectedDate(day.dateString) // Establecer la fecha seleccionada en el estado
   }
 
   return (
