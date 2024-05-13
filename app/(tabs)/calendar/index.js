@@ -51,7 +51,7 @@ const Index = () => {
       if (!userId) return
       // Realizar una solicitud HTTP para obtener las tareas completadas del usuario para la fecha seleccionada
       const response = await axios.get(
-        `http://192.168.1.60:3000/users/${userId}/todos/completed/${selectedDate}`
+        `http://192.168.30.174:3000/users/${userId}/todos/completed/${selectedDate}`
       )
 
       // Extraer las tareas completadas de la respuesta

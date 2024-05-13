@@ -45,7 +45,7 @@ const register = () => {
             password: trimmedPassword
         }
 
-        axios.post('http://192.168.1.60:3000/register', user)
+        axios.post('http://192.168.30.174:3000/register', user)
             .then((response) => {
                 console.log(response)
                 Alert.alert('Registro completado', 'Te has registrado exitosamente')

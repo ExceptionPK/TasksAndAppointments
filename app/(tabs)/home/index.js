@@ -31,6 +31,8 @@ const index = () => {
   const [userId, setUserId] = useState(null)
   const [completedCollapsed, setCompletedCollapsed] = useState(false)
   const [pendingCollapsed, setPendingCollapsed] = useState(false)
+  const [iconChanges, setIconChanges] = useState({})
+  const [showSendIcon, setShowSendIcon] = useState(false)
 
   // Array de sugerencias para autocompletar más rapido las tareas
   const suggestions = [
@@ -43,11 +45,12 @@ const index = () => {
   ]
 
   // Efecto que se ejecuta al cargar el componente para verificar el usuario autenticado 
-  //y recuperar el estado de colapso de las tareas completadas y pendientes
+  //y recuperar el estado de colapso de las tareas completadas y pendientes, recupera el estado de los iconos de edición
   useEffect(() => {
     checkAuthenticatedUser()
     retrieveCompletedCollapsedState()
     retrievePendingCollapsedState()
+    retrieveIconChanges()
   }, [])
 
   // Efecto que se ejecuta cada vez que cambia el ID de usuario, el estado de marcado o la categoría de las tareas
@@ -104,7 +107,7 @@ const index = () => {
   const addTodo = async () => {
     try {
       // Verificar si la tarea está vacía o contiene solo espacios en blanco
-      if (!todo.trim()) { 
+      if (!todo.trim()) {
         ToastAndroid.show('Por favor, escribe una tarea primero.', ToastAndroid.SHORT)
         return
       }
@@ -115,7 +118,7 @@ const index = () => {
       }
 
       // Enviar una solicitud para agregar una nueva tarea al servidor
-      const response = await axios.post(`http://192.168.1.60:3000/todos/${userId}`, todoData)
+      const response = await axios.post(`http://192.168.30.174:3000/todos/${userId}`, todoData)
 
       console.log(response.data)
 
@@ -157,7 +160,7 @@ const index = () => {
   const getUserTodos = async () => {
     try {
       // Obtener las tareas del usuario desde el servidor
-      const response = await axios.get(`http://192.168.1.60:3000/users/${userId}/todos`)
+      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos`)
 
       const allTodos = response.data.todos || [] // Obtener todas las tareas del usuario
       setTodos(allTodos)
@@ -182,7 +185,7 @@ const index = () => {
     try {
       setMarked(true)
       // Enviar una solicitud para marcar la tarea como completada al servidor
-      const response = await axios.patch(`http://192.168.1.60:3000/todos/${todoId}/complete`)
+      const response = await axios.patch(`http://192.168.30.174:3000/todos/${todoId}/complete`)
       console.log(response.data)
 
       await getUserTodos() // Actualizar las tareas del usuario después de marcar una como completada
@@ -195,7 +198,7 @@ const index = () => {
   const deleteTodo = async (todoId) => {
     try {
       // Enviar una solicitud para eliminar la tarea al servidor
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`)
+      const response = await axios.delete(`http://192.168.30.174:3000/todos/${todoId}`)
       console.log(response.data)
       await getUserTodos() // Actualizar las tareas del usuario después de eliminar una
     } catch (error) {
@@ -206,7 +209,7 @@ const index = () => {
   // Función para eliminar todas las tareas del usuario
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/${userId}`)
+      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/${userId}`)
       console.log(response.data)
       await getUserTodos()
     } catch (error) {
@@ -244,6 +247,36 @@ const index = () => {
       console.log(error)
     }
   }
+
+    // Para mantener marcado el indicador de que se ha editado una tarea para saber si se ha editado o no
+    const toggleIcon = async (taskId) => {
+      if (!iconChanges[taskId]) {
+        setIconChanges({ ...iconChanges, [taskId]: true })
+        try {
+          await AsyncStorage.setItem(`iconChanges_${taskId}`, 'true')
+        } catch (error) {
+          console.log('Error al guardar el estado del icono:', error)
+        }
+      }
+    }
+  
+    const retrieveIconChanges = async () => {
+      try {
+        const keys = await AsyncStorage.getAllKeys()
+        const iconChangesData = {}
+        // Filtra las claves que corresponden a los estados de los cambios de icono
+        const iconChangesKeys = keys.filter(key => key.startsWith('iconChanges_'))
+        // Recorre las claves y carga los estados de los cambios de icono correspondientes
+        for (const key of iconChangesKeys) {
+          const taskId = key.split('_')[1]
+          const value = await AsyncStorage.getItem(key)
+          iconChangesData[taskId] = value === 'true'
+        }
+        setIconChanges(iconChangesData)
+      } catch (error) {
+        console.log('Error al cargar estado de icono:', error)
+      }
+    }
 
   // Función para manejar el cambio de categoría de las tareas
   const handleCategoryChange = (newCategory) => {
@@ -283,9 +316,9 @@ const index = () => {
             <View>
               {pendingTodos?.length > 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 }}>
-                  <Text style={{ fontWeight: '900' }}>Tareas por hacer | {today}</Text>
+                  <Text style={{ fontWeight: '900', color: '#242b40' }}>Tareas por hacer | {today}</Text>
                   <TouchableOpacity onPress={togglePendingCollapse}>
-                    <MaterialIcons name={pendingCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='black' />
+                    <MaterialIcons name={pendingCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='#242b40' />
                   </TouchableOpacity>
                 </View>
               )}
@@ -295,14 +328,15 @@ const index = () => {
                   data={pendingTodos}
                   keyExtractor={(item) => item._id}
                   renderItem={({ item }) => (
-                    <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <Pressable style={{ backgroundColor: '#e7edfd', padding: 10, borderRadius: 7, marginVertical: 5, color: '#242b40' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, color: '#242b40' }}>
                         <TouchableOpacity onPress={() => markTodoAsCompleted(item?._id)} activeOpacity={0.5}>
-                          <Entypo name='circle' size={18} color='black' />
+                          <Entypo name='circle' size={18} color='#242b40' />
                         </TouchableOpacity>
                         <Text style={{ flex: 1, fontWeight: '500' }}>{item?.title}</Text>
                         <TouchableOpacity
                           onPress={() => {
+                            toggleIcon(item._id)
                             router?.push({
                               pathname: '/home/info',
                               params: {
@@ -315,13 +349,13 @@ const index = () => {
                             })
                           }}
                         >
-                          <SimpleLineIcons name='pencil' size={23} color='black' style={{ marginRight: 3 }} />
+                          <MaterialCommunityIcons name={iconChanges[item._id] ? 'file-edit' : 'file-edit-outline'} size={24} color='#242b40' style={{ marginRight: 3, bottom: 1 }} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => toggleFlag(item._id)} activeOpacity={0.3}>
                           <Ionicons
                             name={taskFlags[item._id] ? 'flag' : 'flag-outline'}
                             size={25}
-                            color={taskFlags[item._id] ? '#ce6464' : 'black'}
+                            color={taskFlags[item._id] ? '#ce6464' : '#242b40'}
                           />
                         </TouchableOpacity>
                       </View>
@@ -342,9 +376,9 @@ const index = () => {
               {completedTodos?.length > 0 && (
                 <View style={{ marginTop: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginVertical: 5 }}>
-                    <Text style={{ fontWeight: '900', marginRight: 'auto' }}>Tareas completadas | {today}</Text>
+                    <Text style={{ fontWeight: '900', marginRight: 'auto', color: '#242b40' }}>Tareas completadas | {today}</Text>
                     <TouchableOpacity onPress={toggleCompletedCollapse}>
-                      <MaterialIcons name={completedCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='black' />
+                      <MaterialIcons name={completedCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='#242b40' />
                     </TouchableOpacity>
                   </View>
 
@@ -381,7 +415,7 @@ const index = () => {
                 style={{ width: 280, height: 280, left: 10, resizeMode: 'contain' }}
                 source={{ uri: 'https://www.pngall.com/wp-content/uploads/8/Task-List.png' }}
               />
-              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700', textAlign:'center' }}>No tienes tareas por hacer en esta categoría. ¡Añade una tarea!</Text>
+              <Text style={{ fontSize: 18, marginTop: 15, fontWeight: '700', textAlign: 'center' }}>No tienes tareas por hacer en esta categoría. ¡Añade una tarea!</Text>
             </View>
           )}
         </View>
@@ -479,7 +513,7 @@ const index = () => {
         onHardwareBackPress={() => setModalVisible(false)}
         swipeDirection={['up', 'down']}
         swipeThreshold={200}
-        modalTitle={<ModalTitle titleStyle={{ fontWeight: '900' }} title='Añadir una tarea' />}
+        modalTitle={<ModalTitle titleStyle={{ fontWeight: '900', color: '#242b40' }} title='Añadir una tarea' />}
         modalAnimation={new SlideAnimation({ slideFrom: 'bottom' })}
         visible={isModalVisible}
         onTouchOutside={() => setModalVisible(false)}
@@ -497,6 +531,9 @@ const index = () => {
               <Ionicons style={{ left: 5 }} name='send' size={30} color='#6689ee' />
             </TouchableOpacity>
 
+            <TouchableOpacity activeOpacity={0.6} onPress={() => {/* Función para activar el micrófono */ }}>
+              <Ionicons name='mic' size={30} color='#6689ee' />
+            </TouchableOpacity>
           </View>
 
           <Text style={{ fontWeight: '700' }}>Elige la categoría</Text>

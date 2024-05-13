@@ -47,7 +47,7 @@ const login = () => {
             password: trimmedPassword
         }
 
-        axios.post('http://192.168.1.60:3000/login', user)
+        axios.post('http://192.168.30.174:3000/login', user)
             .then((response) => {
                 const token = response.data.token
                 AsyncStorage.setItem('authToken', token)
@@ -80,7 +80,7 @@ const login = () => {
         }
 
         try {
-            await axios.post('http://192.168.1.60:3000/forgot-password', { email: forgotPasswordEmail })
+            await axios.post('http://192.168.30.174:3000/forgot-password', { email: forgotPasswordEmail })
             Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico de restablecimiento de contraseña.')
             handleCloseForgotPasswordModal()
         } catch (error) {
