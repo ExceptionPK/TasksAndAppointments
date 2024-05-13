@@ -118,7 +118,7 @@ const index = () => {
       }
 
       // Enviar una solicitud para agregar una nueva tarea al servidor
-      const response = await axios.post(`http://192.168.30.174:3000/todos/${userId}`, todoData)
+      const response = await axios.post(`http://192.168.1.60:3000/todos/${userId}`, todoData)
 
       console.log(response.data)
 
@@ -160,7 +160,7 @@ const index = () => {
   const getUserTodos = async () => {
     try {
       // Obtener las tareas del usuario desde el servidor
-      const response = await axios.get(`http://192.168.30.174:3000/users/${userId}/todos`)
+      const response = await axios.get(`http://192.168.1.60:3000/users/${userId}/todos`)
 
       const allTodos = response.data.todos || [] // Obtener todas las tareas del usuario
       setTodos(allTodos)
@@ -185,7 +185,7 @@ const index = () => {
     try {
       setMarked(true)
       // Enviar una solicitud para marcar la tarea como completada al servidor
-      const response = await axios.patch(`http://192.168.30.174:3000/todos/${todoId}/complete`)
+      const response = await axios.patch(`http://192.168.1.60:3000/todos/${todoId}/complete`)
       console.log(response.data)
 
       await getUserTodos() // Actualizar las tareas del usuario después de marcar una como completada
@@ -198,7 +198,7 @@ const index = () => {
   const deleteTodo = async (todoId) => {
     try {
       // Enviar una solicitud para eliminar la tarea al servidor
-      const response = await axios.delete(`http://192.168.30.174:3000/todos/${todoId}`)
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/${todoId}`)
       console.log(response.data)
       await getUserTodos() // Actualizar las tareas del usuario después de eliminar una
     } catch (error) {
@@ -209,7 +209,7 @@ const index = () => {
   // Función para eliminar todas las tareas del usuario
   const deleteAllTodos = async () => {
     try {
-      const response = await axios.delete(`http://192.168.30.174:3000/todos/delete-all/${userId}`)
+      const response = await axios.delete(`http://192.168.1.60:3000/todos/delete-all/${userId}`)
       console.log(response.data)
       await getUserTodos()
     } catch (error) {
@@ -531,9 +531,9 @@ const index = () => {
               <Ionicons style={{ left: 5 }} name='send' size={30} color='#6689ee' />
             </TouchableOpacity>
 
-            <TouchableOpacity activeOpacity={0.6} onPress={() => {/* Función para activar el micrófono */ }}>
+            {/* <TouchableOpacity activeOpacity={0.6}>
               <Ionicons name='mic' size={30} color='#6689ee' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <Text style={{ fontWeight: '700' }}>Elige la categoría</Text>
