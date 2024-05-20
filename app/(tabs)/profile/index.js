@@ -104,7 +104,7 @@ const Index = () => {
       if (!userId) return // Si no hay un ID de usuario, salir de la función
 
       // Realizar una solicitud HTTP para obtener los datos de las tareas del usuario
-      const response = await axios.get(`http://192.168.1.60:3000/users/${userId}/todos/count`)
+      const response = await axios.get(`http://apita.onrender.com/users/${userId}/todos/count`)
       const { totalCompletedTodos, totalPendingTodos } = response.data
       setCompletedTasks(totalCompletedTodos)
       setPendingTasks(totalPendingTodos)

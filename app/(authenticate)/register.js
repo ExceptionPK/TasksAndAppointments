@@ -34,9 +34,12 @@ const register = () => {
         }
 
         const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailEncript.test(trimmedEmail) || !trimmedEmail.endsWith('@gmail.com')) {
+        const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'icloud.com']
+        const emailDomain = trimmedEmail.split('@')[1]
+
+        if (!emailEncript.test(trimmedEmail) || !allowedDomains.includes(emailDomain)) {
             Alert.alert('Correo electrónico inválido', 'Por favor, introduce un correo electrónico válido.')
-            return;
+            return
         }
 
         const user = {
@@ -45,10 +48,10 @@ const register = () => {
             password: trimmedPassword
         }
 
-        axios.post('http://192.168.1.60:3000/register', user)
+        axios.post('http://apita.onrender.com/register', user)
             .then((response) => {
                 console.log(response)
-                Alert.alert('Registro completado', 'Te has registrado exitosamente')
+                router.replace('/login')
                 setEmail('')
                 setPassword('')
                 setName('')

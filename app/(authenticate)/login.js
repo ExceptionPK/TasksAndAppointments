@@ -37,9 +37,12 @@ const login = () => {
         }
 
         const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailEncript.test(trimmedEmail) || !trimmedEmail.endsWith('@gmail.com')) {
+        const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'icloud.com']
+        const emailDomain = trimmedEmail.split('@')[1]
+
+        if (!emailEncript.test(trimmedEmail) || !allowedDomains.includes(emailDomain)) {
             Alert.alert('Correo electrónico inválido', 'Por favor, introduce un correo electrónico válido.')
-            return;
+            return
         }
 
         const user = {
@@ -47,7 +50,7 @@ const login = () => {
             password: trimmedPassword
         }
 
-        axios.post('http://192.168.1.60:3000/login', user)
+        axios.post('http://apita.onrender.com/login', user)
             .then((response) => {
                 const token = response.data.token
                 AsyncStorage.setItem('authToken', token)
@@ -55,14 +58,13 @@ const login = () => {
             })
             .catch((error) => {
                 if (error.response && error.response.status === 401) {
-                    Alert.alert('Credenciales incorrectas', 'El correo electrónico o la contraseña proporcionados no son válidos.')
+                    Alert.alert('Credenciales incorrectas', 'Los datos proporcionados no son válidos.')
                 } else {
                     console.error('Error en la solicitud de inicio de sesión:', error)
                     Alert.alert('Error', 'Ha ocurrido un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.')
                 }
             })
     }
-
 
     const handleForgotPassword = () => {
         setIsForgotPasswordModalVisible(true)
@@ -75,12 +77,12 @@ const login = () => {
 
     const handleSendPasswordResetEmail = async () => {
         if (!forgotPasswordEmail.trim()) {
-            Alert.alert('Campo vacío', 'Por favor, ingresa tu correo electrónico.');
-            return;
+            Alert.alert('Campo vacío', 'Por favor, ingresa tu correo electrónico.')
+            return
         }
 
         try {
-            await axios.post('http://192.168.1.60:3000/forgot-password', { email: forgotPasswordEmail })
+            await axios.post('http://apita.onrender.com/forgot-password', { email: forgotPasswordEmail })
             Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico de restablecimiento de contraseña.')
             handleCloseForgotPasswordModal()
         } catch (error) {
