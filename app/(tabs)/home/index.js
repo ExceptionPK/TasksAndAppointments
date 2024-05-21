@@ -63,7 +63,7 @@ const index = () => {
     const intervalId = setInterval(() => {
       // Verificar que la referencia a la imagen no sea null antes de llamar a shake
       if (imageRef.current) {
-        imageRef.current.swing(1500) // Duración de la vibración en milisegundos
+        imageRef.current.swing(1800) // Duración de la vibración en milisegundos
       }
     }, 5000) // Intervalo de 10 segundos
 
