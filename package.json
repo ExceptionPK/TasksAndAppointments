@@ -26,6 +26,7 @@
     "nodemailer": "^6.9.13",
     "react": "18.2.0",
     "react-native": "^0.74.1",
+    "react-native-animatable": "^1.4.0",
     "react-native-calendars": "^1.1304.1",
     "react-native-chart-kit": "^6.12.0",
     "react-native-gesture-handler": "^2.16.2",

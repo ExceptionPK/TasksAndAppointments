@@ -1,5 +1,5 @@
 import { Modal, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity, ToastAndroid, LogBox } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 import { BottomModal, ModalContent, ModalTitle, SlideAnimation } from 'react-native-modals'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +14,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import { SwipeListView } from 'react-native-swipe-list-view'
 import { Calendar } from 'react-native-calendars'
+import * as Animatable from 'react-native-animatable'
 LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 
 const index = () => {
@@ -54,6 +55,20 @@ const index = () => {
     retrieveCompletedCollapsedState()
     retrievePendingCollapsedState()
     retrieveIconChanges()
+  }, [])
+
+  const imageRef = useRef(null)
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Verificar que la referencia a la imagen no sea null antes de llamar a shake
+      if (imageRef.current) {
+        imageRef.current.swing(1500) // Duración de la vibración en milisegundos
+      }
+    }, 5000) // Intervalo de 10 segundos
+
+    // Limpiar el intervalo cuando el componente se desmonte para evitar fugas de memoria
+    return () => clearInterval(intervalId)
   }, [])
 
   // Efecto que se ejecuta cada vez que cambia el ID de usuario, el estado de marcado o la categoría de las tareas
@@ -427,7 +442,8 @@ const index = () => {
             </View>
           ) : (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 130, marginLeft: 'auto', marginRight: 'auto' }}>
-              <Image
+              <Animatable.Image
+                ref={imageRef}
                 style={{ width: 280, height: 280, left: 10, resizeMode: 'contain' }}
                 source={{ uri: 'https://www.pngall.com/wp-content/uploads/8/Task-List.png' }}
               />
