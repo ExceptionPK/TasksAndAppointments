@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Modal, Alert, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Modal, Alert, TouchableOpacity, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { AntDesign } from '@expo/vector-icons'
@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 const login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
     const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false)
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
     const router = useRouter()
@@ -33,6 +34,7 @@ const login = () => {
 
     // Función para manejar el inicio de sesión
     const handleLogin = () => {
+        setLoading(true)
         // Eliminar espacios en blanco de los datos ingresados por el usuario
         const trimmedEmail = email.trim()
         const trimmedPassword = password.trim()
@@ -40,6 +42,7 @@ const login = () => {
         // Verificar si algún campo está vacío y mostrar una alerta si es así
         if (!trimmedEmail || !trimmedPassword) {
             Alert.alert('Campos vacíos', 'Por favor, completa todos los campos.')
+            setLoading(false)
             return
         }
 
@@ -50,6 +53,7 @@ const login = () => {
 
         if (!emailEncript.test(trimmedEmail) || !allowedDomains.includes(emailDomain)) {
             Alert.alert('Correo electrónico inválido', 'Por favor, introduce un correo electrónico válido.')
+            setLoading(false)
             return
         }
 
@@ -64,14 +68,17 @@ const login = () => {
             .then((response) => {
                 const token = response.data.token
                 AsyncStorage.setItem('authToken', token)
+                setLoading(false)
                 router.replace('/(tabs)/home')
             })
             .catch((error) => {
                 if (error.response && error.response.status === 401) {
                     Alert.alert('Credenciales incorrectas', 'Los datos proporcionados no son válidos.')
+                    setLoading(false)
                 } else {
                     console.error('Error en la solicitud de inicio de sesión:', error)
                     Alert.alert('Error', 'Ha ocurrido un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.')
+                    setLoading(false)
                 }
             })
     }
@@ -89,25 +96,29 @@ const login = () => {
 
     // Función para enviar un correo electrónico de restablecimiento de contraseña
     const handleSendPasswordResetEmail = async () => {
+        setLoading(true)
         if (!forgotPasswordEmail.trim()) {
             Alert.alert('Campo vacío', 'Por favor, ingresa tu correo electrónico.')
+            setLoading(false)
             return
         }
 
         try {
             await axios.post('http://apita.onrender.com/forgot-password', { email: forgotPasswordEmail })
             Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico de restablecimiento de contraseña.')
+            setLoading(false)
             handleCloseForgotPasswordModal()
         } catch (error) {
             console.log(error)
-            Alert.alert('Error de envío', 'Hubo un error al enviar el correo electrónico de restablecimiento de contraseña. Comprueba que has ingresado bien el correo electrónico.')
+            Alert.alert('Error de envío', 'Hubo un error al enviar el correo electrónico de restablecimiento de contraseña.')
+            setLoading(false)
         }
     }
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center' }}>
             <View style={{ marginTop: 80 }}>
-                <Text style={{ fontSize: 30, fontWeight: 800, color: '#406ef2' }}>TASKS & APPOINTMENTS</Text>
+                <Text style={{ fontSize: 30, fontWeight: '800', color: '#406ef2' }}>TASKS & APPOINTMENTS</Text>
             </View>
             <KeyboardAvoidingView style={{ width: 300 }}>
                 <View style={{ alignItems: 'center' }}>
@@ -157,7 +168,7 @@ const login = () => {
 
                     </View>
 
-                    <View style={{ marginTop: 140 }} />
+                    <View style={{ marginTop: 145 }} />
 
                     <TouchableOpacity activeOpacity={0.7} onPress={handleLogin} style={{ width: 200, backgroundColor: '#406ef2', padding: 15, borderRadius: 5, marginLeft: 'auto', marginRight: 'auto' }}>
                         <Text style={{ textAlign: 'center', color: 'white', fontWeight: 'bold', fontSize: 18 }}>Iniciar sesión</Text>
@@ -202,11 +213,17 @@ const login = () => {
                                 </TouchableOpacity>
                             </View>
 
-
-
                         </View>
                     </View>
                 </Modal>
+
+                {loading && (
+                    <Image
+                        source={require('./loading.gif')}
+                        style={{ width: 140, height: 90, position: 'absolute', top: '65%', left: '28%', marginTop: -50 }}
+                    />
+                )}
+
             </KeyboardAvoidingView>
         </SafeAreaView>
     )

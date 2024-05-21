@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Alert, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, TextInput, Alert, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
@@ -9,10 +9,12 @@ const register = () => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
     const router = useRouter()
 
     // Función para manejar el registro de usuarios
     const handleRegister = () => {
+        setLoading(true)
         // Eliminar espacios en blanco de los datos ingresados por el usuario
         const trimmedName = name.trim()
         const trimmedEmail = email.trim()
@@ -21,6 +23,7 @@ const register = () => {
         // Verificar si algún campo está vacío y mostrar una alerta si es así
         if (!trimmedEmail || !trimmedPassword || !trimmedName) {
             Alert.alert('Campos vacíos', 'Por favor, completa todos los campos.')
+            setLoading(false)
             return
         }
 
@@ -28,6 +31,7 @@ const register = () => {
         const containsNumber = /\d/.test(trimmedName)
         if (containsNumber) {
             Alert.alert('Nombre inválido', 'El nombre no puede contener números.')
+            setLoading(false)
             return
         }
 
@@ -35,6 +39,7 @@ const register = () => {
         const passwordEncript = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,}$/
         if (!passwordEncript.test(trimmedPassword)) {
             Alert.alert('Contraseña inválida', 'La contraseña debe tener entre 6 y 14 caracteres, incluyendo al menos un número, una letra mayúscula, una letra minúscula y un símbolo.')
+            setLoading(false)
             return
         }
 
@@ -45,6 +50,7 @@ const register = () => {
 
         if (!emailEncript.test(trimmedEmail) || !allowedDomains.includes(emailDomain)) {
             Alert.alert('Correo electrónico inválido', 'Por favor, introduce un correo electrónico válido.')
+            setLoading(false)
             return
         }
 
@@ -59,6 +65,7 @@ const register = () => {
             .then((response) => {
                 console.log(response)
                 // Redirigir al usuario a la página de inicio de sesión después de un registro exitoso
+                setLoading(false)
                 router.replace('/login')
                 setEmail('')
                 setPassword('')
@@ -66,6 +73,7 @@ const register = () => {
             })
             .catch((error) => {
                 Alert.alert('Registro incorrecto', 'Ha ocurrido un error durante el registro')
+                setLoading(false)
                 console.log('error', error)
             })
     }
@@ -149,6 +157,14 @@ const register = () => {
                     </TouchableOpacity>
 
                 </View>
+
+                {loading && (
+                    <Image
+                        source={require('./loading.gif')}
+                        style={{ width: 140, height: 90, position: 'absolute', top: '76%', left: '27%', marginTop: -50 }}
+                    />
+                )}
+
             </KeyboardAvoidingView>
         </SafeAreaView>
     )

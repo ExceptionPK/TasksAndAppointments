@@ -332,7 +332,7 @@ app.post("/forgot-password", async (req, res) => {
                 </div>
             `
         }
-        
+
         // Enviar el correo electrónico utilizando el servicio de SendGrid
         await sgMail.send(msg)
 

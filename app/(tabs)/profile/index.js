@@ -331,7 +331,7 @@ const Index = () => {
         {showOptions && (
           <View style={{ backgroundColor: 'white', padding: 15, borderRadius: 5, elevation: 5 }}>
             <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Personalizar perfil</Text>
+              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar foto de perfil</Text>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.6} onPress={toggleDarkMode}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar a modo oscuro</Text>

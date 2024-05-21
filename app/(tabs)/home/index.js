@@ -34,7 +34,7 @@ const index = () => {
   const [iconChanges, setIconChanges] = useState({})
   const [selectedDate, setSelectedDate] = useState(null)
   const [isCalendarVisible, setCalendarVisible] = useState(false)
-  const [groupedPendingTodos, setGroupedPendingTodos] = useState({})
+  const [loading, setLoading] = useState(false)
 
 
   // Array de sugerencias para autocompletar más rapido las tareas
@@ -108,10 +108,12 @@ const index = () => {
 
   // Función para agregar una nueva tarea
   const addTodo = async () => {
+    setLoading(true)
     try {
       // Verificar si la tarea está vacía o contiene solo espacios en blanco
       if (!todo.trim()) {
         ToastAndroid.show('Por favor, escribe una tarea primero.', ToastAndroid.SHORT)
+        setLoading(false)
         return
       }
 
@@ -137,6 +139,7 @@ const index = () => {
       }
 
       setModalVisible(false)
+      setLoading(false)
       setTodo('')
     } catch (error) {
       console.log(error)
@@ -538,8 +541,20 @@ const index = () => {
               placeholder='Escribe una nueva tarea'
               style={{ padding: 10, borderColor: '#e0e0e0', borderWidth: 1, borderRadius: 5, flex: 1, fontWeight: '500' }}
             />
-            <TouchableOpacity activeOpacity={0.6} onPress={addTodo}>
-              <Ionicons style={{ left: 5 }} name='send' size={30} color='#6689ee' />
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={addTodo}
+              disabled={loading}
+            >
+              {loading ? (
+                <Image
+                  source={require('./loading2.gif')}
+                  size={28}
+                  style={{ width: 28, height: 50, left: 5 }}
+                />
+              ) : (
+                <Ionicons name='send' size={28} style={{ left: 5 }} color='#6689ee' />
+              )}
             </TouchableOpacity>
 
             {/* <TouchableOpacity activeOpacity={0.6}>
