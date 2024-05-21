@@ -11,28 +11,34 @@ const register = () => {
     const [password, setPassword] = useState('')
     const router = useRouter()
 
+    // Función para manejar el registro de usuarios
     const handleRegister = () => {
+        // Eliminar espacios en blanco de los datos ingresados por el usuario
         const trimmedName = name.trim()
         const trimmedEmail = email.trim()
         const trimmedPassword = password.trim()
 
+        // Verificar si algún campo está vacío y mostrar una alerta si es así
         if (!trimmedEmail || !trimmedPassword || !trimmedName) {
             Alert.alert('Campos vacíos', 'Por favor, completa todos los campos.')
             return
         }
 
+        // Verificar si el nombre contiene números y mostrar una alerta si es así
         const containsNumber = /\d/.test(trimmedName)
         if (containsNumber) {
             Alert.alert('Nombre inválido', 'El nombre no puede contener números.')
             return
         }
 
+        // Verificar si la contraseña cumple con los requisitos y mostrar una alerta si no
         const passwordEncript = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,}$/
         if (!passwordEncript.test(trimmedPassword)) {
             Alert.alert('Contraseña inválida', 'La contraseña debe tener entre 6 y 14 caracteres, incluyendo al menos un número, una letra mayúscula, una letra minúscula y un símbolo.')
             return
         }
 
+        // Verificar si el correo electrónico tiene un formato válido y pertenece a un dominio permitido
         const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'icloud.com']
         const emailDomain = trimmedEmail.split('@')[1]
@@ -48,9 +54,11 @@ const register = () => {
             password: trimmedPassword
         }
 
+        // Enviar la solicitud de registro al servidor
         axios.post('http://apita.onrender.com/register', user)
             .then((response) => {
                 console.log(response)
+                // Redirigir al usuario a la página de inicio de sesión después de un registro exitoso
                 router.replace('/login')
                 setEmail('')
                 setPassword('')

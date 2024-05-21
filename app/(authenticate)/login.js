@@ -13,10 +13,13 @@ const login = () => {
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
     const router = useRouter()
 
+    // Función para verificar el estado del inicio de sesión al cargar el componente
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
+                // Verificar si hay un token de autenticación almacenado en AsyncStorage
                 const token = await AsyncStorage.getItem('authToken')
+                // Si hay un token, redirigir al usuario a la página de inicio
                 if (token) {
                     router.replace('/(tabs)/home')
                 }
@@ -24,18 +27,23 @@ const login = () => {
                 console.log(error)
             }
         }
+        // Llamar a la función de verificación del estado del inicio de sesión al cargar el componente
         checkLoginStatus()
     }, [])
 
+    // Función para manejar el inicio de sesión
     const handleLogin = () => {
+        // Eliminar espacios en blanco de los datos ingresados por el usuario
         const trimmedEmail = email.trim()
         const trimmedPassword = password.trim()
 
+        // Verificar si algún campo está vacío y mostrar una alerta si es así
         if (!trimmedEmail || !trimmedPassword) {
             Alert.alert('Campos vacíos', 'Por favor, completa todos los campos.')
             return
         }
 
+        // Verificar si el correo electrónico tiene un formato válido y pertenece a un dominio permitido
         const emailEncript = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'icloud.com']
         const emailDomain = trimmedEmail.split('@')[1]
@@ -45,11 +53,13 @@ const login = () => {
             return
         }
 
+        // Crear un objeto de usuario con los datos ingresados
         const user = {
             email: trimmedEmail,
             password: trimmedPassword
         }
 
+        // Enviar la solicitud de inicio de sesión al servidor
         axios.post('http://apita.onrender.com/login', user)
             .then((response) => {
                 const token = response.data.token
@@ -66,15 +76,18 @@ const login = () => {
             })
     }
 
+    // Función para manejar la apertura del modal de restablecimiento de contraseña
     const handleForgotPassword = () => {
         setIsForgotPasswordModalVisible(true)
     }
 
+    // Función para cerrar el modal de restablecimiento de contraseña
     const handleCloseForgotPasswordModal = () => {
         setIsForgotPasswordModalVisible(false)
         setForgotPasswordEmail('')
     }
 
+    // Función para enviar un correo electrónico de restablecimiento de contraseña
     const handleSendPasswordResetEmail = async () => {
         if (!forgotPasswordEmail.trim()) {
             Alert.alert('Campo vacío', 'Por favor, ingresa tu correo electrónico.')

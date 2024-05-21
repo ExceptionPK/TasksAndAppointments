@@ -152,7 +152,7 @@ const Index = () => {
   const selectImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync() // Solicitar permisos a la biblioteca de medios del dispositivo
     if (permissionResult.granted === false) {
-      alert('Necesitas dar permisos para seleccionar imagenes')
+      alert('Necesitas dar permisos para seleccionar las imagenes')
       return
     }
 

@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import { SwipeListView } from 'react-native-swipe-list-view'
-import { SimpleLineIcons } from '@expo/vector-icons'
+import { Calendar } from 'react-native-calendars'
 LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 
 const index = () => {
@@ -32,7 +32,10 @@ const index = () => {
   const [completedCollapsed, setCompletedCollapsed] = useState(false)
   const [pendingCollapsed, setPendingCollapsed] = useState(false)
   const [iconChanges, setIconChanges] = useState({})
-  const [showSendIcon, setShowSendIcon] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [isCalendarVisible, setCalendarVisible] = useState(false)
+  const [groupedPendingTodos, setGroupedPendingTodos] = useState({})
+
 
   // Array de sugerencias para autocompletar más rapido las tareas
   const suggestions = [
@@ -248,39 +251,48 @@ const index = () => {
     }
   }
 
-    // Para mantener marcado el indicador de que se ha editado una tarea para saber si se ha editado o no
-    const toggleIcon = async (taskId) => {
-      if (!iconChanges[taskId]) {
-        setIconChanges({ ...iconChanges, [taskId]: true })
-        try {
-          await AsyncStorage.setItem(`iconChanges_${taskId}`, 'true')
-        } catch (error) {
-          console.log('Error al guardar el estado del icono:', error)
-        }
-      }
-    }
-  
-    const retrieveIconChanges = async () => {
+  // Para mantener marcado el indicador de que se ha editado una tarea para saber si se ha editado o no
+  const toggleIcon = async (taskId) => {
+    if (!iconChanges[taskId]) {
+      setIconChanges({ ...iconChanges, [taskId]: true })
       try {
-        const keys = await AsyncStorage.getAllKeys()
-        const iconChangesData = {}
-        // Filtra las claves que corresponden a los estados de los cambios de icono
-        const iconChangesKeys = keys.filter(key => key.startsWith('iconChanges_'))
-        // Recorre las claves y carga los estados de los cambios de icono correspondientes
-        for (const key of iconChangesKeys) {
-          const taskId = key.split('_')[1]
-          const value = await AsyncStorage.getItem(key)
-          iconChangesData[taskId] = value === 'true'
-        }
-        setIconChanges(iconChangesData)
+        await AsyncStorage.setItem(`iconChanges_${taskId}`, 'true')
       } catch (error) {
-        console.log('Error al cargar estado de icono:', error)
+        console.log('Error al guardar el estado del icono:', error)
       }
     }
+  }
+
+  const retrieveIconChanges = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys()
+      const iconChangesData = {}
+      // Filtra las claves que corresponden a los estados de los cambios de icono
+      const iconChangesKeys = keys.filter(key => key.startsWith('iconChanges_'))
+      // Recorre las claves y carga los estados de los cambios de icono correspondientes
+      for (const key of iconChangesKeys) {
+        const taskId = key.split('_')[1]
+        const value = await AsyncStorage.getItem(key)
+        iconChangesData[taskId] = value === 'true'
+      }
+      setIconChanges(iconChangesData)
+    } catch (error) {
+      console.log('Error al cargar estado de icono:', error)
+    }
+  }
 
   // Función para manejar el cambio de categoría de las tareas
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory)
+  }
+
+  const openCalendar = () => {
+    setCalendarVisible(true) // Mostrar el calendario
+  }
+
+  const handleDateSelected = (date) => {
+    setSelectedDate(date)
+    setCalendarVisible(false)
   }
 
   return (
@@ -316,7 +328,8 @@ const index = () => {
             <View>
               {pendingTodos?.length > 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 5 }}>
-                  <Text style={{ fontWeight: '900', color: '#242b40' }}>Tareas por hacer | {today}</Text>
+                  <Text style={{ fontWeight: '900', color: '#242b40' }}>Tareas por hacer | {selectedDate ? moment(selectedDate).locale('es').format('DD/MM/YYYY') : today}</Text>
+
                   <TouchableOpacity onPress={togglePendingCollapse}>
                     <MaterialIcons name={pendingCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='#242b40' />
                   </TouchableOpacity>
@@ -376,7 +389,7 @@ const index = () => {
               {completedTodos?.length > 0 && (
                 <View style={{ marginTop: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginVertical: 5 }}>
-                    <Text style={{ fontWeight: '900', marginRight: 'auto', color: '#242b40' }}>Tareas completadas | {today}</Text>
+                    <Text style={{ fontWeight: '900', marginRight: 'auto', color: '#242b40' }}>Tareas completadas</Text>
                     <TouchableOpacity onPress={toggleCompletedCollapse}>
                       <MaterialIcons name={completedCollapsed ? 'arrow-drop-up' : 'arrow-drop-down'} size={24} color='#242b40' />
                     </TouchableOpacity>
@@ -506,8 +519,6 @@ const index = () => {
         </View>
       </ScrollView> */}
 
-
-
       <BottomModal
         onBackdropPress={() => setModalVisible(false)}
         onHardwareBackPress={() => setModalVisible(false)}
@@ -554,6 +565,9 @@ const index = () => {
             >
               <Text style={{ fontWeight: '500' }}>Personal</Text>
             </Pressable>
+            <TouchableOpacity onPress={openCalendar} style={{ marginLeft: 10 }}>
+              <Entypo name="calendar" size={24} color="#6689ee" />
+            </TouchableOpacity>
           </View>
 
           <Text style={{ fontWeight: '700', marginTop: 10 }}>Sugerencias</Text>
@@ -566,6 +580,27 @@ const index = () => {
           </View>
         </ModalContent>
       </BottomModal>
+
+      {/* Modal para mostrar el calendario */}
+      <Modal visible={isCalendarVisible} transparent={true} animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          {/* Fondo semitransparente */}
+          <TouchableOpacity
+            style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
+            onPress={() => setCalendarVisible(false)} // Oculta el calendario si se toca fuera de él
+          >
+            <View style={{ flex: 1 }} />
+          </TouchableOpacity>
+
+          {/* Calendario */}
+          <View style={{ backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
+            <Calendar
+              onDayPress={(day) => handleDateSelected(day.dateString)}
+              markedDates={{ [selectedDate]: { selected: true, selectedColor: '#7CB9E8' } }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showConfirmationModal}
