@@ -13,6 +13,7 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 
 # Instalación
 ``Importante tener actualizado ExpoGO a la versión 51``
+## Para configurarlo localmente
 ### 1. Clona el repositorio desde GitHub y navega al directorio del proyecto:
 - > git clone https://github.com/ExceptionPK/TasksAndAppointments.git
 - > cd TasksAndAppointments
@@ -36,6 +37,9 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 ### Ejemplo
 ![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/2.PNG)
 ![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/1.PNG)
+
+## Prueba de la app (instalar en un dispositivo Android)
+
 
 # Autor
 **Pablo Kuzmin Mashkantsev**
