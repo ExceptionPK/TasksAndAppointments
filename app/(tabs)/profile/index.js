@@ -29,10 +29,15 @@ const Index = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
 
-  // Función para abrir o cerrar el modal de cambio de contraseña
-  const toggleChangePasswordModal = () => {
-    setChangePasswordModalVisible(!changePasswordModalVisible)
-  }
+  //  Array de los logros
+  const [achievements, setAchievements] = useState([
+    { achieved: false, color: '#b1c3f1', text: '5 tareas', textColor: '#cf9258', medalColor: '#cf9258' },
+    { achieved: false, color: '#b1c3f1', text: '10 tareas', textColor: '#BEBEBE', medalColor: '#BEBEBE' },
+    { achieved: false, color: '#b1c3f1', text: '15 tareas', textColor: '#FFD700', medalColor: '#FFD700' },
+    { achieved: false, color: '#b1c3f1', text: '20 tareas', textColor: '#b4d1d7', medalColor: '#b4d1d7' },
+    { achieved: false, color: '#b1c3f1', text: '25 tareas', textColor: '#9cd8e6', medalColor: '#9cd8e6' },
+    { achieved: false, color: '#b1c3f1', text: '30 tareas', textColor: '#64d7d7', medalColor: '#64d7d7' }
+  ])
 
   const openModal = () => {
     setIsModalVisible(true)
@@ -44,21 +49,6 @@ const Index = () => {
     setNewPassword('')
   }
 
-  //  Array de los logros
-  const [achievements, setAchievements] = useState([
-    { achieved: false, color: '#b1c3f1', text: '5 tareas', textColor: '#cf9258', medalColor: '#cf9258' },
-    { achieved: false, color: '#b1c3f1', text: '10 tareas', textColor: '#BEBEBE', medalColor: '#BEBEBE' },
-    { achieved: false, color: '#b1c3f1', text: '15 tareas', textColor: '#FFD700', medalColor: '#FFD700' },
-    { achieved: false, color: '#b1c3f1', text: '20 tareas', textColor: '#b4d1d7', medalColor: '#b4d1d7' },
-    { achieved: false, color: '#b1c3f1', text: '25 tareas', textColor: '#9cd8e6', medalColor: '#9cd8e6' },
-    { achieved: false, color: '#b1c3f1', text: '30 tareas', textColor: '#64d7d7', medalColor: '#64d7d7' }
-  ])
-
-
-  // Función para alternar entre modo oscuro y claro
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
-  }
 
   // Efecto para verificar si hay un usuario autenticado al cargar el componente
   useEffect(() => {
@@ -69,6 +59,16 @@ const Index = () => {
   useEffect(() => {
     if (userId) {
       retrieveSelectedImageUri()
+    }
+  }, [userId])
+
+
+  // Efecto para actualizar los datos de las tareas del usuario y mantenerlos actualizados cada 3 segundos
+  useEffect(() => {
+    if (userId) {
+      fetchUserTaskData()
+      const interval = setInterval(fetchUserTaskData, 3000)
+      return () => clearInterval(interval)
     }
   }, [userId])
 
@@ -91,6 +91,7 @@ const Index = () => {
       console.log(error)
     }
   }
+
 
   // Función para alternar la visibilidad de las opciones y animar su aparición
   const toggleOptions = () => {
@@ -121,11 +122,10 @@ const Index = () => {
 
   // Función para obtener los datos de las tareas del usuario
   const fetchUserTaskData = async () => {
+    if (!userId) return
     try {
-      if (!userId) return // Si no hay un ID de usuario, salir de la función
-
       // Realizar una solicitud HTTP para obtener los datos de las tareas del usuario
-      const response = await axios.get(`http://apita.onrender.com/users/${userId}/todos/count`)
+      const response = await axios.get(`https://apita.onrender.com/users/${userId}/todos/count`)
       const { totalCompletedTodos, totalPendingTodos } = response.data
       setCompletedTasks(totalCompletedTodos)
       setPendingTasks(totalPendingTodos)
@@ -171,7 +171,7 @@ const Index = () => {
 
       // Verificar si la contraseña actual coincide con el registro de la bbdd
       const response = await axios.post(
-        `http://apita.onrender.com/verify-password`,
+        `https://apita.onrender.com/verify-password`,
         {
           userId: userId,
           currentPassword: trimmedCurrentPassword,
@@ -204,7 +204,7 @@ const Index = () => {
 
       // Cambiar la contraseña
       await axios.put(
-        `http://apita.onrender.com/change-password`,
+        `https://apita.onrender.com/change-password`,
         {
           userId: userId,
           currentPassword: trimmedCurrentPassword,
@@ -223,16 +223,6 @@ const Index = () => {
       Alert.alert('Error', 'Ha ocurrido un error al cambiar la contraseña actual.')
     }
   }
-
-
-  // Efecto para actualizar los datos de las tareas del usuario y mantenerlos actualizados cada 3 segundos
-  useEffect(() => {
-    if (userId) {
-      fetchUserTaskData()
-      const interval = setInterval(fetchUserTaskData, 3000)
-      return () => clearInterval(interval)
-    }
-  }, [userId])
 
   // Función para manejar el cierre de sesión
   const handleLogout = async () => {

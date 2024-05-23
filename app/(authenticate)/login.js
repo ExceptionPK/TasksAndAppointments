@@ -64,7 +64,7 @@ const login = () => {
         }
 
         // Enviar la solicitud de inicio de sesión al servidor
-        axios.post('http://apita.onrender.com/login', user)
+        axios.post('https://apita.onrender.com/login', user)
             .then((response) => {
                 const token = response.data.token
                 AsyncStorage.setItem('authToken', token)
@@ -104,7 +104,7 @@ const login = () => {
         }
 
         try {
-            await axios.post('http://apita.onrender.com/forgot-password', { email: forgotPasswordEmail })
+            await axios.post('https://apita.onrender.com/forgot-password', { email: forgotPasswordEmail })
             Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico de restablecimiento de contraseña.')
             setLoading(false)
             handleCloseForgotPasswordModal()
