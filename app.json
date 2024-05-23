@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "scheme": "TasksAndAppointmentsPV",
+    "scheme": "tasksandappointmentspv",
     "web": {
       "favicon": "./assets/logoTA.png"
     },
