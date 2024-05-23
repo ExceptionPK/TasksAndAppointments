@@ -38,8 +38,8 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 ![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/2.PNG)
 ![](https://github.com/ExceptionPK/TasksAndAppointments/blob/main/1.PNG)
 
-## Prueba de la app (instalar en un dispositivo Android)
-
+## Prueba de app completamente funcional (instalar en un dispositivo Android)
+https://tasksandapp.webcindario.com/
 
 # Autor
 **Pablo Kuzmin Mashkantsev**
