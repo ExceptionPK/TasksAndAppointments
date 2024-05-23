@@ -63,7 +63,7 @@ const register = () => {
         // Enviar la solicitud de registro al servidor
         axios.post('http://apita.onrender.com/register', user)
             .then((response) => {
-                console.log(response)
+                // console.log(response)
                 // Redirigir al usuario a la página de inicio de sesión después de un registro exitoso
                 setLoading(false)
                 router.replace('/login')

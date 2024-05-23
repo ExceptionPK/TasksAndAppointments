@@ -17,6 +17,7 @@ import { Calendar } from 'react-native-calendars'
 import * as Animatable from 'react-native-animatable'
 LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 
+
 const index = () => {
   const router = useRouter()
   const [todos, setTodos] = useState([])
@@ -140,7 +141,7 @@ const index = () => {
       // Enviar una solicitud para agregar una nueva tarea al servidor
       const response = await axios.post(`http://apita.onrender.com/todos/${userId}`, todoData)
 
-      console.log(response.data)
+      // console.log(response.data)
 
       // Agregar la nueva tarea a la lista de tareas
       const newTodo = response.data.todo
@@ -207,7 +208,7 @@ const index = () => {
       setMarked(true)
       // Enviar una solicitud para marcar la tarea como completada al servidor
       const response = await axios.patch(`http://apita.onrender.com/todos/${todoId}/complete`)
-      console.log(response.data)
+      // console.log(response.data)
 
       await getUserTodos() // Actualizar las tareas del usuario después de marcar una como completada
     } catch (error) {
@@ -220,7 +221,7 @@ const index = () => {
     try {
       // Enviar una solicitud para eliminar la tarea al servidor
       const response = await axios.delete(`http://apita.onrender.com/todos/${todoId}`)
-      console.log(response.data)
+      // console.log(response.data)
       await getUserTodos() // Actualizar las tareas del usuario después de eliminar una
     } catch (error) {
       console.log(error)
@@ -231,15 +232,15 @@ const index = () => {
   const deleteAllTodos = async () => {
     try {
       const response = await axios.delete(`http://apita.onrender.com/todos/delete-all/${userId}`)
-      console.log(response.data)
+      // console.log(response.data)
       await getUserTodos()
     } catch (error) {
       console.log(error)
     }
   }
 
-  console.log('completados:', completedTodos)
-  console.log('pendientes:', pendingTodos)
+  // console.log('completados:', completedTodos)
+  // console.log('pendientes:', pendingTodos)
 
   // Función para cambiar el estado de la bandera de una tarea
   const toggleFlag = async (taskId) => {

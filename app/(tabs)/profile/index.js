@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated, TouchableOpacity } from 'react-native'
+import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated, TouchableOpacity, Modal, TextInput, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { LineChart } from 'react-native-chart-kit'
@@ -9,6 +9,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import profileImage from '../profile/profile-image.jpg'
 import * as ImagePicker from 'expo-image-picker'
+
 
 const Index = () => {
   const router = useRouter()
@@ -21,7 +22,27 @@ const Index = () => {
   const [selectedImageUri, setSelectedImageUri] = useState(null)
   const [darkMode, setDarkMode] = useState(false)
   const [achievementCount, setAchievementCount] = useState(0)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
 
+  // Función para abrir o cerrar el modal de cambio de contraseña
+  const toggleChangePasswordModal = () => {
+    setChangePasswordModalVisible(!changePasswordModalVisible)
+  }
+
+  const openModal = () => {
+    setIsModalVisible(true)
+  }
+
+  const closeModal = () => {
+    setIsModalVisible(false)
+    setCurrentPassword('')
+    setNewPassword('')
+  }
 
   //  Array de los logros
   const [achievements, setAchievements] = useState([
@@ -128,6 +149,81 @@ const Index = () => {
       console.log('error', error)
     }
   }
+
+
+  // Función para cambiar la contraseña
+  const handleSave = async () => {
+    try {
+      const trimmedCurrentPassword = currentPassword.trim()
+      const trimmedNewPassword = newPassword.trim()
+
+      // Verificar que se han introducido datos
+      if (!trimmedCurrentPassword || !trimmedNewPassword) {
+        Alert.alert('Campos vacíos', 'Por favor ingresa la contraseña actual y la nueva contraseña.')
+        return
+      }
+
+      // Obtener el token de autenticación
+      const token = await AsyncStorage.getItem('authToken')
+      if (!token) {
+        return router.replace('/login')
+      }
+
+      // Verificar si la contraseña actual coincide con el registro de la bbdd
+      const response = await axios.post(
+        `http://apita.onrender.com/verify-password`,
+        {
+          userId: userId,
+          currentPassword: trimmedCurrentPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      const currentPasswordMatches = response.data.passwordMatch
+
+      if (!currentPasswordMatches) {
+        Alert.alert('Error', 'La contraseña actual no coincide.')
+        return
+      }
+
+      // Verificar si la contraseña cumple con los requisitos
+      const passwordEncript = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,}$/
+      if (!passwordEncript.test(trimmedNewPassword)) {
+        Alert.alert('Contraseña nueva inválida', 'La contraseña debe tener entre 6 y 14 caracteres, incluyendo al menos un número, una letra mayúscula, una letra minúscula y un símbolo.')
+        return
+      }
+
+      // Verificar que la contraseña nueva no sea igual a la anterior
+      if (trimmedCurrentPassword === trimmedNewPassword) {
+        Alert.alert('Contraseñas iguales', 'La nueva contraseña debe ser diferente a la actual.')
+        return
+      }
+
+      // Cambiar la contraseña
+      await axios.put(
+        `http://apita.onrender.com/change-password`,
+        {
+          userId: userId,
+          currentPassword: trimmedCurrentPassword,
+          newPassword: trimmedNewPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      Alert.alert('Contraseña actualizada', 'Se ha actualizado tu contraseña.')
+      closeModal()
+    } catch (error) {
+      console.error('Error al cambiar la contraseña:', error)
+      Alert.alert('Error', 'Ha ocurrido un error al cambiar la contraseña actual.')
+    }
+  }
+
 
   // Efecto para actualizar los datos de las tareas del usuario y mantenerlos actualizados cada 3 segundos
   useEffect(() => {
@@ -333,8 +429,8 @@ const Index = () => {
             <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
               <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar foto de perfil</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.6} onPress={toggleDarkMode}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar a modo oscuro</Text>
+            <TouchableOpacity activeOpacity={0.6} onPress={openModal}>
+              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar contraseña</Text>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.6} onPress={handleLogout}>
               <Text style={{ fontSize: 16, fontWeight: '900', color: '#ce6464' }}>Cerrar sesión</Text>
@@ -343,10 +439,120 @@ const Index = () => {
         )}
       </Animated.View>
 
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalMessage, { fontWeight: '900', textAlign: 'center' }]}>Cambia tu contraseña:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña actual"
+              value={currentPassword}
+              onChangeText={text => {
+                // Verificar que no se ingresen espacios en blanco
+                if (!/\s/.test(text)) {
+                  setCurrentPassword(text);
+                }
+              }}
+              secureTextEntry={!showCurrentPassword}
+              maxLength={14} // Establecer la longitud máxima
+            />
+            <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ position: 'absolute', right: 40, top: 73, zIndex: 1 }}>
+              <Ionicons name={showCurrentPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="Nueva contraseña"
+              value={newPassword}
+              onChangeText={text => {
+                // Verificar que no se ingresen espacios en blanco
+                if (!/\s/.test(text)) {
+                  setNewPassword(text);
+                }
+              }}
+              secureTextEntry={!showNewPassword}
+              maxLength={14}
+            />
+            <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={{ position: 'absolute', right: 40, top: 133, zIndex: 1 }}>
+              <Ionicons name={showNewPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
+            </TouchableOpacity>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSave}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalButtonText}>Guardar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={closeModal}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
 
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalMessage: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    marginTop: 10,
+    justifyContent: 'space-around',
+  },
+  modalButton: {
+    padding: 11,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#6689ee',
+    marginRight: 5,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#f36259',
+    marginLeft: 5,
+  },
+})
+
 export default Index
 
-const styles = StyleSheet.create({})
+
