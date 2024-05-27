@@ -5,10 +5,12 @@ import { AntDesign } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Ionicons } from '@expo/vector-icons'
 
 const login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [passwordVisible, setPasswordVisible] = useState(false)
     const [loading, setLoading] = useState(false)
     const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false)
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
@@ -115,6 +117,10 @@ const login = () => {
         }
     }
 
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible)
+    }
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center' }}>
             <View style={{ marginTop: 80 }}>
@@ -146,9 +152,13 @@ const login = () => {
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e9eaec', paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
                         <AntDesign style={{ marginLeft: 8, color: 'gray' }} name='lock1' size={24} color='black' />
+                        <Ionicons style={styles.passwordIcon} size={24} color='#667cc3' />
+                        <TouchableOpacity onPress={togglePasswordVisibility} style={{ position: 'absolute', right: 15, top: 18, zIndex: 1 }}>
+                            <Ionicons name={passwordVisible ? 'eye' : 'eye-off'} size={24} color="#667cc3" />
+                        </TouchableOpacity>
                         <TextInput
                             value={password}
-                            secureTextEntry={true}
+                            secureTextEntry={!passwordVisible}
                             onChangeText={(text) => {
                                 if (text.length <= 14) {
                                     setPassword(text.trim())
@@ -175,8 +185,12 @@ const login = () => {
                     </TouchableOpacity>
 
                     <TouchableOpacity activeOpacity={0.7} onPress={() => router.replace('/register')} style={{ marginTop: 15 }}>
-                        <Text style={{ textAlign: 'center', color: 'gray', fontSize: 16 }}>¿No tienes una cuenta? Regístrate</Text>
+                        <Text style={{ textAlign: 'center', fontSize: 16 }}>
+                            <Text style={{ color: 'gray' }}>¿No tienes una cuenta? </Text>
+                            <Text style={{ color: '#007FFF' }}>Regístrate</Text>
+                        </Text>
                     </TouchableOpacity>
+
 
                     <TouchableOpacity activeOpacity={0.5} onPress={handleForgotPassword} style={{ marginTop: 15 }}>
                         <Text style={{ textAlign: 'center', color: '#007FFF', fontWeight: 600 }}>Olvidé mi contraseña</Text>

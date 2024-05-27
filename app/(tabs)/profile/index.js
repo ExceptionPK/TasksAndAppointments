@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated, TouchableOpacity, Modal, TextInput, Alert } from 'react-native'
+import { Image, StyleSheet, Text, View, Dimensions, Pressable, Animated, TouchableOpacity, Modal, TextInput, Alert, TouchableWithoutFeedback } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { LineChart } from 'react-native-chart-kit'
@@ -9,6 +9,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { decode as atob } from 'base-64'
 import profileImage from '../profile/profile-image.jpg'
 import * as ImagePicker from 'expo-image-picker'
+import { useFocusEffect } from '@react-navigation/native'
 
 
 const Index = () => {
@@ -71,6 +72,16 @@ const Index = () => {
       return () => clearInterval(interval)
     }
   }, [userId])
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        if (showOptions) {
+          toggleOptions()
+        }
+      }
+    }, [showOptions])
+  )
 
   // Función para verificar si hay un usuario autenticado y recuperar su ID
   const checkAuthenticatedUser = async () => {
@@ -274,222 +285,224 @@ const Index = () => {
   }
 
   return (
-    <View style={{ padding: 10, flex: 1, backgroundColor: 'white' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Image
-          style={{ width: 60, height: 60, borderRadius: 30 }}
-          source={selectedImageUri && typeof selectedImageUri === 'string' ? { uri: selectedImageUri } : profileImage}
-        />
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: '600' }}>
-            Planifica tus tareas con tiempo
-          </Text>
-          <Text style={{ fontSize: 15, color: 'gray', marginTop: 4 }}>
-            Selecciona las categorias
-          </Text>
-        </View>
-      </View>
-
-      <View style={{ marginVertical: 12 }}>
-        <Text style={{ fontWeight: 'bold', marginTop: 5 }}>Resumen de tus estadísticas</Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            marginVertical: 8,
-          }}
-        >
-
-          <View
-            style={{
-              backgroundColor: '#b1c3f1',
-              padding: 10,
-              borderRadius: 8,
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
-            >
-              {pendingTasks}
+    <TouchableWithoutFeedback onPress={() => { if (showOptions) toggleOptions() }}>
+      <View style={{ padding: 10, flex: 1, backgroundColor: 'white' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Image
+            style={{ width: 60, height: 60, borderRadius: 30 }}
+            source={selectedImageUri && typeof selectedImageUri === 'string' ? { uri: selectedImageUri } : profileImage}
+          />
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '600' }}>
+              Planifica tus tareas con tiempo
             </Text>
-            <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas por hacer</Text>
-          </View>
-          <View
-            style={{
-              backgroundColor: '#b1c3f1',
-              padding: 10,
-              borderRadius: 8,
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
-            >
-              {completedTasks}
+            <Text style={{ fontSize: 15, color: 'gray', marginTop: 4 }}>
+              Selecciona las categorias
             </Text>
-            <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas completadas</Text>
           </View>
         </View>
-      </View>
 
-      <LineChart
-        data={{
-          labels: ['Tareas por hacer', 'Tareas completadas'],
-          style: {
-            fontWeight: '600'
-          },
-          datasets: [
-            {
-              data: [pendingTasks, completedTasks],
-            },
-          ],
-        }}
-        width={Dimensions.get('window').width - 20}
-        height={220}
-        yAxisInterval={2}
-        chartConfig={{
-          backgroundColor: '#aaa3e3',
-          backgroundGradientFrom: '#a3b1e3',
-          backgroundGradientTo: '#667ac2',
-          decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: '6',
-            strokeWidth: '2',
-            stroke: '#667ac2',
-          },
-        }}
-        bezier
-        style={{
-          borderRadius: 16,
-        }}
-      />
-
-      <Text style={{ fontWeight: 'bold', marginTop: 20 }}>Logros conseguidos</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
-        {achievements.map((achievement, index) => (
-          <Pressable
-            key={index}
+        <View style={{ marginVertical: 12 }}>
+          <Text style={{ fontWeight: 'bold', marginTop: 5 }}>Resumen de tus estadísticas</Text>
+          <View
             style={{
-              width: '31%',
-              aspectRatio: 1,
-              backgroundColor: achievement.achieved ? '#FFF' : '#b1c3f1',
-              padding: 10,
-              borderRadius: 8,
-              marginVertical: 5,
-              marginHorizontal: '1%',
-              justifyContent: 'center',
+              flexDirection: 'row',
               alignItems: 'center',
-              borderWidth: achievement.achieved ? 2 : 0,
-              borderColor: achievement.achieved ? '#b1c3f1' : 'transparent',
+              gap: 6,
+              marginVertical: 8,
             }}
           >
-            {achievement.achieved ? (
-              <>
-                <Ionicons name="medal-outline" size={24} color={achievement.medalColor} />
-                <Text style={{ fontWeight: 'bold', color: achievement.textColor }}>{achievement.text}</Text>
-              </>
-            ) : (
-              <AntDesign name='questioncircleo' size={24} color='#FFFFFF' />
-            )}
-          </Pressable>
-        ))}
-      </View>
 
-
-      <Pressable onPress={toggleOptions} style={{ position: 'absolute', top: 18, right: 15 }}>
-        <Animated.View style={{ transform: [{ rotate: spin }] }}>
-          <Ionicons name='settings-outline' size={24} color='black' />
-        </Animated.View>
-      </Pressable>
-
-      <Animated.View style={{ opacity: fadeAnim, position: 'absolute', top: 50, right: 10 }}>
-        {showOptions && (
-          <View style={{ backgroundColor: 'white', padding: 15, borderRadius: 5, elevation: 5 }}>
-            <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar foto de perfil</Text>
-            </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.6} onPress={openModal}>
-              <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar contraseña</Text>
-            </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.6} onPress={handleLogout}>
-              <Text style={{ fontSize: 16, fontWeight: '900', color: '#ce6464' }}>Cerrar sesión</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </Animated.View>
-
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={[styles.modalMessage, { fontWeight: '900', textAlign: 'center' }]}>Cambia tu contraseña:</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña actual"
-              value={currentPassword}
-              onChangeText={text => {
-                // Verificar que no se ingresen espacios en blanco
-                if (!/\s/.test(text)) {
-                  setCurrentPassword(text);
-                }
+            <View
+              style={{
+                backgroundColor: '#b1c3f1',
+                padding: 10,
+                borderRadius: 8,
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-              secureTextEntry={!showCurrentPassword}
-              maxLength={14} // Establecer la longitud máxima
-            />
-            <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ position: 'absolute', right: 40, top: 73, zIndex: 1 }}>
-              <Ionicons name={showCurrentPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              placeholder="Nueva contraseña"
-              value={newPassword}
-              onChangeText={text => {
-                // Verificar que no se ingresen espacios en blanco
-                if (!/\s/.test(text)) {
-                  setNewPassword(text);
-                }
+            >
+              <Text
+                style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
+              >
+                {pendingTasks}
+              </Text>
+              <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas por hacer</Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: '#b1c3f1',
+                padding: 10,
+                borderRadius: 8,
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-              secureTextEntry={!showNewPassword}
-              maxLength={14}
-            />
-            <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={{ position: 'absolute', right: 40, top: 133, zIndex: 1 }}>
-              <Ionicons name={showNewPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
-            </TouchableOpacity>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={handleSave}
-                activeOpacity={0.7}
+            >
+              <Text
+                style={{ textAlign: 'center', fontSize: 16, fontWeight: '900', color: 'white' }}
               >
-                <Text style={styles.modalButtonText}>Guardar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={closeModal}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
+                {completedTasks}
+              </Text>
+              <Text style={{ marginTop: 4, fontWeight: '500', color: 'white' }}>tareas completadas</Text>
             </View>
           </View>
         </View>
-      </Modal>
-    </View>
+
+        <LineChart
+          data={{
+            labels: ['Tareas por hacer', 'Tareas completadas'],
+            style: {
+              fontWeight: '600'
+            },
+            datasets: [
+              {
+                data: [pendingTasks, completedTasks],
+              },
+            ],
+          }}
+          width={Dimensions.get('window').width - 20}
+          height={220}
+          yAxisInterval={2}
+          chartConfig={{
+            backgroundColor: '#aaa3e3',
+            backgroundGradientFrom: '#a3b1e3',
+            backgroundGradientTo: '#667ac2',
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+            propsForDots: {
+              r: '6',
+              strokeWidth: '2',
+              stroke: '#667ac2',
+            },
+          }}
+          bezier
+          style={{
+            borderRadius: 16,
+          }}
+        />
+
+        <Text style={{ fontWeight: 'bold', marginTop: 20 }}>Logros conseguidos</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
+          {achievements.map((achievement, index) => (
+            <Pressable
+              key={index}
+              style={{
+                width: '31%',
+                aspectRatio: 1,
+                backgroundColor: achievement.achieved ? '#FFF' : '#b1c3f1',
+                padding: 10,
+                borderRadius: 8,
+                marginVertical: 5,
+                marginHorizontal: '1%',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: achievement.achieved ? 2 : 0,
+                borderColor: achievement.achieved ? '#b1c3f1' : 'transparent',
+              }}
+            >
+              {achievement.achieved ? (
+                <>
+                  <Ionicons name="medal-outline" size={24} color={achievement.medalColor} />
+                  <Text style={{ fontWeight: 'bold', color: achievement.textColor }}>{achievement.text}</Text>
+                </>
+              ) : (
+                <AntDesign name='questioncircleo' size={24} color='#FFFFFF' />
+              )}
+            </Pressable>
+          ))}
+        </View>
+
+
+        <Pressable onPress={toggleOptions} style={{ position: 'absolute', top: 18, right: 15 }}>
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <Ionicons name='settings-outline' size={24} color='black' />
+          </Animated.View>
+        </Pressable>
+
+        <Animated.View style={{ opacity: fadeAnim, position: 'absolute', top: 50, right: 10 }}>
+          {showOptions && (
+            <View style={{ backgroundColor: 'white', padding: 15, borderRadius: 5, elevation: 5 }}>
+              <TouchableOpacity activeOpacity={0.6} onPress={selectImage}>
+                <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar foto de perfil</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.6} onPress={openModal}>
+                <Text style={{ fontSize: 16, marginBottom: 10, fontWeight: '400' }}>Cambiar contraseña</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.6} onPress={handleLogout}>
+                <Text style={{ fontSize: 16, fontWeight: '900', color: '#ce6464' }}>Cerrar sesión</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </Animated.View>
+
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          animationType='fade'
+          onRequestClose={closeModal}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={[styles.modalMessage, { fontWeight: '900', textAlign: 'center' }]}>Cambia tu contraseña:</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña actual"
+                value={currentPassword}
+                onChangeText={text => {
+                  // Verificar que no se ingresen espacios en blanco
+                  if (!/\s/.test(text)) {
+                    setCurrentPassword(text);
+                  }
+                }}
+                secureTextEntry={!showCurrentPassword}
+                maxLength={14} // Establecer la longitud máxima
+              />
+              <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ position: 'absolute', right: 40, top: 73, zIndex: 1 }}>
+                <Ionicons name={showCurrentPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholder="Nueva contraseña"
+                value={newPassword}
+                onChangeText={text => {
+                  // Verificar que no se ingresen espacios en blanco
+                  if (!/\s/.test(text)) {
+                    setNewPassword(text);
+                  }
+                }}
+                secureTextEntry={!showNewPassword}
+                maxLength={14}
+              />
+              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={{ position: 'absolute', right: 40, top: 133, zIndex: 1 }}>
+                <Ionicons name={showNewPassword ? 'eye-off' : 'eye'} size={24} color="#667cc3" />
+              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSave}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalButtonText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={closeModal}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </TouchableWithoutFeedback>
   )
 }
 

@@ -10,6 +10,7 @@ const register = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
+    const [passwordVisible, setPasswordVisible] = useState(false)
     const router = useRouter()
 
     // Función para manejar el registro de usuarios
@@ -78,6 +79,9 @@ const register = () => {
             })
     }
 
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible)
+    }
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center' }}>
@@ -129,9 +133,12 @@ const register = () => {
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e9eaec', paddingVertical: 5, borderRadius: 5, marginTop: 20 }}>
                         <AntDesign style={{ marginLeft: 8, color: 'gray' }} name='lock1' size={24} color='black' />
+                        <TouchableOpacity onPress={togglePasswordVisibility} style={{ position: 'absolute', right: 15, top: 18, zIndex: 1 }}>
+                            <Ionicons name={passwordVisible ? 'eye' : 'eye-off'} size={24} color="#667cc3" />
+                        </TouchableOpacity>
                         <TextInput
                             value={password}
-                            secureTextEntry={true}
+                            secureTextEntry={!passwordVisible}
                             onChangeText={(text) => {
                                 if (text.length <= 14) {
                                     setPassword(text.trim())
