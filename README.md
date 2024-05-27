@@ -4,12 +4,12 @@ Esta es una aplicación de gestión de tareas desarrollada con React Native en e
 # Funcionalidades
 - **Registro:** Los usuarios pueden registrarse en la aplicación con su nombre, correo electrónico y contraseña.
 - **Inicio de sesión:** Los usuarios pueden iniciar sesión en la aplicación con su correo electrónico y contraseña.
-- **Recuperación de contraseña:** Los usuarios pueden restablecer su contraseña utilizando el correo electrónico registrado. (no funcional al clonar)
+- **Recuperación de contraseña:** Los usuarios pueden restablecer su contraseña utilizando el correo electrónico registrado (no funcional al clonar debido a la necesidad de API KEY). 
 - **Gestión de tareas:** Los usuarios pueden agregar, completar, marcar y eliminar tareas.
 - **Gestión de categorías:** Los usuarios pueden filtrar tareas por categorías.
 - **Gestión de subtareas:** Los usuarios pueden entrar a una vista de detalle en cada tarea, agregar notas y activar recordatorios.
 - **Calendario:** Los usuarios pueden ver cuantas tareas han completado un día en concreto.
-- **Perfil:** Los usuarios pueden ver una gráfica con tareas completadas y pendientes totales, sistema de logros por tareas hechas, posibilidad de cambiar foto de perfil y cierre de sesión
+- **Perfil:** Los usuarios pueden ver una gráfica con tareas completadas y pendientes totales, sistema de logros por tareas hechas, posibilidad de cambiar foto de perfil y cierre de sesión.
 
 # Instalación
 ``Importante tener actualizado ExpoGO a la versión 51``
